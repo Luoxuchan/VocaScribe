@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocaScribe - VOCALOID 歌曲条目生成器 For Vocawiki</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>VocaScribe Alpha</h1>
+                    <p class="subtitle">VOCALOID 歌曲条目生成器 For Vocawiki</p>
+                </div>
+                <a href="https://voca.wiki/index.php?curid=66056" target="_blank" class="btn btn-outline btn-help">
+                    📖 页面格式帮助
+                </a>
+            </div>
+        </header>
+
+        <main class="main-layout">
+            <div class="form-columns">
+                <div class="form-column form-column-1">
+                    <section class="form-section">
+                        <h2><span class="section-icon">📝</span>基本信息</h2>
+                        
+                        <div class="form-group required">
+                            <label for="songNameOriginal">歌曲原名 <span class="required-mark">*</span></label>
+                            <div class="input-with-option">
+                                <input type="text" id="songNameOriginal" name="songNameOriginal" placeholder="如：メズマライザー">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="songNameOriginalLj" name="songNameOriginalLj" checked>
+                                    <span>套用{{lj}}模板</span>
+                                </label>
+                            </div>
+                            <p class="help-text">歌曲的原始名称，日文内容建议勾选套用{{lj}}模板。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="songNameTranslated">歌曲译名</label>
+                            <input type="text" id="songNameTranslated" name="songNameTranslated" placeholder="如：催眠者">
+                            <p class="help-text">歌曲的中文译名，可选填写。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="songNameEnglish">英文名称</label>
+                            <input type="text" id="songNameEnglish" name="songNameEnglish" placeholder="如：Mesmerizer">
+                            <p class="help-text">歌曲的英文名称，可选填写。</p>
+                        </div>
+
+                        <div class="form-group required">
+                            <label for="producerName">P主名称 <span class="required-mark">*</span></label>
+                            <div class="input-with-option">
+                                <input type="text" id="producerName" name="producerName" placeholder="如：サツキ">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="producerNameLj" name="producerNameLj" checked onchange="toggleProducerEntryName()">
+                                    <span>套用{{lj}}模板</span>
+                                </label>
+                            </div>
+                            <div id="producerEntryNameGroup" style="display: none; margin-top: 10px;">
+                                <label for="producerEntryName">P主条目名</label>
+                                <input type="text" id="producerEntryName" name="producerEntryName" placeholder="如：Satsuki（当P主名与条目名不同时填写）">
+                                <p class="help-text">当P主名称与Wiki条目名不同时填写，将生成[[条目名|{{lj|P主名}}]]格式。</p>
+                            </div>
+                            <p class="help-text">歌曲创作者（P主）的名称，日文内容建议勾选套用{{lj}}模板。</p>
+                        </div>
+
+                        <div class="form-group required">
+                            <label for="vocalistName">歌姬名称 <span class="required-mark">*</span></label>
+                            <input type="text" id="vocalistName" name="vocalistName" placeholder="如：初音未来、重音Teto（多个用顿号分隔）">
+                            <p class="help-text">演唱的虚拟歌手名称，多个歌姬用顿号分隔。将自动生成[[歌姬名]]格式。</p>
+                        </div>
+
+                        <div class="form-group required">
+                            <label for="engineName">歌姬对应引擎 <span class="required-mark">*</span></label>
+                            <input type="text" id="engineName" name="engineName" placeholder="如：VOCALOID、Synthesizer V（多个用顿号分隔）">
+                            <p class="help-text">虚拟歌手使用的语音合成引擎，多个引擎用顿号分隔。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="producerTemplate">P主模板名称</label>
+                            <input type="text" id="producerTemplate" name="producerTemplate" placeholder="如：Satsuki">
+                            <p class="help-text">P主对应的导航模板名称，可在<a href="https://voca.wiki/Category:P%E4%B8%BB%E6%A8%A1%E6%9D%BF" target="_blank">Category:P主模板</a>中查找。留空则不添加。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vocalistTemplate">歌姬模板名称</label>
+                            <input type="text" id="vocalistTemplate" name="vocalistTemplate" placeholder="如：重音Teto/2024">
+                            <p class="help-text">歌姬对应的导航模板名称，可在<a href="https://voca.wiki/Category:%E8%99%9A%E6%8B%9F%E6%AD%8C%E6%89%8B%E6%A8%A1%E6%9D%BF" target="_blank">Category:虚拟歌手模板</a>中查找。暂无需在页面中添加初音未来歌手模板。留空则不添加。</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label standalone">
+                                <input type="checkbox" id="useNewSongbox" name="useNewSongbox" checked>
+                                <span>使用新版Songbox</span>
+                            </label>
+                            <p class="help-text">勾选时使用{{VOCALOID_Songbox/new}}模板，取消勾选使用{{VOCALOID_Songbox}}模板。</p>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">🖼️</span>图片信息</h2>
+                        
+                        <div class="form-group">
+                            <label for="imageName">封面图片文件名</label>
+                            <div class="input-with-button">
+                                <input type="text" id="imageName" name="imageName" placeholder="如：催眠者_hq.jpg">
+                                <button type="button" class="btn btn-small btn-outline" onclick="window.open('https://voca.wiki/Special:Upload', '_blank')">前往上传</button>
+                            </div>
+                            <p class="help-text">歌曲封面的图片文件名（需先上传至Wiki）。点击"前往上传"按钮可快速跳转到上传页面。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>图片制作者类型</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="imageCreatorType" value="illustrator" checked onchange="toggleImageCreatorType()">
+                                    <span>曲绘画师</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="imageCreatorType" value="animator" onchange="toggleImageCreatorType()">
+                                    <span>动画师</span>
+                                </label>
+                            </div>
+                            <p class="help-text">请选择图片的主要制作者类型，两者只能选其一。</p>
+                        </div>
+
+                        <div id="illustratorGroup" class="form-group">
+                            <label for="illustratorName">曲绘画师名</label>
+                            <div class="input-with-option">
+                                <input type="text" id="illustratorName" name="illustratorName" placeholder="如：channel">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="illustratorNameLj" name="illustratorNameLj">
+                                    <span>套用{{lj}}模板</span>
+                                </label>
+                            </div>
+                            <p class="help-text">曲绘的画师名称，日文内容请勾选套用{{lj}}模板。</p>
+                        </div>
+
+                        <div id="animatorGroup" class="form-group" style="display: none;">
+                            <label for="animatorName">动画师名</label>
+                            <div class="input-with-option">
+                                <input type="text" id="animatorName" name="animatorName" placeholder="如：channel">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="animatorNameLj" name="animatorNameLj">
+                                    <span>套用{{lj}}模板</span>
+                                </label>
+                            </div>
+                            <p class="help-text">PV动画的制作者名称，日文内容请勾选套用{{lj}}模板。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customColor">自定义颜色</label>
+                            <input type="text" id="customColor" name="customColor" placeholder="如：linear-gradient(to right,#2ed0ff 25%,#FFD700 50%,#fa2a48 75%);color:#FFF;">
+                            <p class="help-text">歌曲信息框的自定义CSS颜色样式，留空使用默认颜色。</p>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">🎬</span>投稿信息</h2>
+                        
+                        <div class="form-group">
+                            <label>投稿平台</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label standalone">
+                                    <input type="checkbox" id="hasNiconico" name="hasNiconico" onchange="togglePlatformInputs()">
+                                    <span>Niconico投稿</span>
+                                </label>
+                                <label class="checkbox-label standalone">
+                                    <input type="checkbox" id="hasBilibili" name="hasBilibili" onchange="togglePlatformInputs()">
+                                    <span>Bilibili投稿</span>
+                                </label>
+                                <label class="checkbox-label standalone">
+                                    <input type="checkbox" id="hasYouTube" name="hasYouTube" onchange="togglePlatformInputs()">
+                                    <span>YouTube投稿</span>
+                                </label>
+                            </div>
+                            <p class="help-text">勾选歌曲投稿的平台，将显示对应的ID和日期输入框。若各平台投稿日期相同或只有一个平台投稿，将使用统一"投稿时间"参数。</p>
+                        </div>
+
+                        <div id="niconicoInputGroup" class="sub-options" style="display: none;">
+                            <div class="form-group">
+                                <label for="nndId">Niconico ID</label>
+                                <input type="text" id="nndId" name="nndId" placeholder="如：sm43708803">
+                                <p class="help-text">填写 https://www.nicovideo.jp/watch/ 后面的ID部分。</p>
+                            </div>
+                            <div class="form-group" id="nndDateGroup">
+                                <label for="nndDate">Niconico投稿日期</label>
+                                <div class="date-input-group">
+                                    <input type="date" id="nndDatePicker" class="date-picker">
+                                    <input type="text" id="nndDate" name="nndDate" placeholder="如：20240427 或 2024年4月27日">
+                                </div>
+                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。</p>
+                            </div>
+                        </div>
+
+                        <div id="bilibiliInputGroup" class="sub-options" style="display: none;">
+                            <div class="form-group">
+                                <label for="bbId">Bilibili ID</label>
+                                <input type="text" id="bbId" name="bbId" placeholder="如：BV15J4m1A7qy" oninput="syncBilibiliIdToMv()">
+                                <p class="help-text">填写 https://www.bilibili.com/video/ 后面的BV号。不收录授权等非官方投稿。</p>
+                            </div>
+                            <div class="form-group" id="bbDateGroup">
+                                <label for="bbDate">Bilibili投稿日期</label>
+                                <div class="date-input-group">
+                                    <input type="date" id="bbDatePicker" class="date-picker">
+                                    <input type="text" id="bbDate" name="bbDate" placeholder="如：20240513 或 2024年5月13日">
+                                </div>
+                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240513）或直接选择日期。</p>
+                            </div>
+                        </div>
+
+                        <div id="youtubeInputGroup" class="sub-options" style="display: none;">
+                            <div class="form-group">
+                                <label for="ytId">YouTube ID</label>
+                                <input type="text" id="ytId" name="ytId" placeholder="如：19y8YTbvri8">
+                                <p class="help-text">填写 https://www.youtube.com/watch?v= 后面的ID部分。</p>
+                            </div>
+                            <div class="form-group" id="ytDateGroup">
+                                <label for="ytDate">YouTube投稿日期</label>
+                                <div class="date-input-group">
+                                    <input type="date" id="ytDatePicker" class="date-picker">
+                                    <input type="text" id="ytDate" name="ytDate" placeholder="如：20240427 或 2024年4月27日">
+                                </div>
+                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。</p>
+                            </div>
+                        </div>
+
+                        <div id="mvGroup" class="form-group">
+                            <label>歌曲MV（Bilibili）</label>
+                            <p class="help-text">添加歌曲的Bilibili视频。原曲始终在第一位，可添加其他版本。勾选Bilibili投稿后，原曲BV号将自动同步。</p>
+                            
+                            <div class="mv-list" id="mvList">
+                                <div class="mv-item mv-item-original">
+                                    <span class="mv-label">原曲</span>
+                                    <input type="text" class="mv-id" placeholder="BV号" data-field="mvId" data-is-original="true">
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-small btn-outline" onclick="addMvVersionItem()" style="margin-top: 10px;">
+                                + 添加其他版本
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">🏆</span>荣誉信息</h2>
+                        
+                        <div class="form-group">
+                            <label for="nrank">Niconico荣誉等级</label>
+                            <select id="nrank" name="nrank">
+                                <option value="">无</option>
+                                <option value="1">殿堂</option>
+                                <option value="2">传说</option>
+                                <option value="3">神话</option>
+                                <option value="4">破亿</option>
+                            </select>
+                            <p class="help-text">歌曲在Niconico的播放量成就等级。殿堂：10万播放；传说：100万播放；神话：1000万播放；破亿：1亿播放。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="brank">Bilibili荣誉等级</label>
+                            <select id="brank" name="brank">
+                                <option value="">无</option>
+                                <option value="1">殿堂</option>
+                                <option value="2">传说</option>
+                                <option value="3">神话</option>
+                                <option value="4">破亿</option>
+                            </select>
+                            <p class="help-text">歌曲在Bilibili的播放量成就等级。殿堂：10万播放；传说：100万播放；神话：1000万播放；破亿：1亿播放。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="yrank">YouTube荣誉等级</label>
+                            <select id="yrank" name="yrank">
+                                <option value="">无</option>
+                                <option value="1">殿堂</option>
+                                <option value="2">传说</option>
+                                <option value="3">神话</option>
+                                <option value="4">破亿</option>
+                            </select>
+                            <p class="help-text">歌曲在YouTube的播放量成就等级。殿堂：10万播放；传说：100万播放；神话：1000万播放；破亿：1亿播放。</p>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">🏅</span>活动与奖项</h2>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label standalone">
+                                <input type="checkbox" id="participateVocaloidCollection" name="participateVocaloidCollection" onchange="toggleVocaloidCollection()">
+                                <span>参与The VOCALOID Collection活动</span>
+                            </label>
+                            <p class="help-text">若歌曲参与了VOCALOID Collection活动，请勾选此项。</p>
+                        </div>
+
+                        <div class="sub-options" id="vocaloidCollectionOptions" style="display: none;">
+                            <div class="form-group">
+                                <label for="vocaloidCollectionSeason">活动场次</label>
+                                <input type="text" id="vocaloidCollectionSeason" name="vocaloidCollectionSeason" placeholder="如：ボカコレ2022秋">
+                                <p class="help-text">参与的具体场次名称。</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vocaloidCollectionRank">获得排名</label>
+                                <input type="text" id="vocaloidCollectionRank" name="vocaloidCollectionRank" placeholder="如：TOP100中的第x名">
+                                <p class="help-text">在活动中获得的排名信息。</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="humanVersion">人声本家</label>
+                            <input type="text" id="humanVersion" name="humanVersion" placeholder="如：xx演唱">
+                            <p class="help-text">若有人声翻唱版本，填写相关信息。留空则不添加。</p>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="form-column form-column-2">
+                    <section class="form-section">
+                        <h2><span class="section-icon">✍️</span>投稿文</h2>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label standalone">
+                                <input type="checkbox" id="multilinePostText" name="multilinePostText" onchange="toggleMultilinePostText()">
+                                <span>多行投稿文</span>
+                            </label>
+                            <p class="help-text">勾选后投稿文改为多行形式，并使用{{ljd}}模板而非{{lj}}模板。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postTextOriginal">投稿文原文</label>
+                            <div class="input-with-option">
+                                <input type="text" id="postTextOriginal" name="postTextOriginal" placeholder="P主在投稿时写的原文..." style="flex:1">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="postTextOriginalLj" name="postTextOriginalLj">
+                                    <span>套用{{lj}}模板</span>
+                                </label>
+                            </div>
+                            <p class="help-text">P主在投稿时写的原文内容，可选填写。日文内容请勾选套用模板。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postTextTranslated">投稿文译文</label>
+                            <input type="text" id="postTextTranslated" name="postTextTranslated" placeholder="投稿文的中文翻译...">
+                            <p class="help-text">投稿文的中文翻译，可选填写。</p>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">🎵</span>歌曲详情</h2>
+                        
+                        <div class="form-group required">
+                            <label for="songLanguage">歌曲语言 <span class="required-mark">*</span></label>
+                            <select id="songLanguage" name="songLanguage" onchange="toggleSongLanguageOther()">
+                                <option value="日语">日语</option>
+                                <option value="中文">中文</option>
+                                <option value="英语">英语</option>
+                                <option value="韩语">韩语</option>
+                                <option value="其他">其他</option>
+                            </select>
+                            <div id="songLanguageOtherGroup" style="display: none; margin-top: 10px;">
+                                <input type="text" id="songLanguageOther" name="songLanguageOther" placeholder="请输入语言名称">
+                            </div>
+                            <div id="chineseSongHint" class="hint-box" style="display: none;">
+                                <p>由中国籍创作者制作的汉语歌曲，在Niconico或YouTube平台上的播放量达到10万。</p>
+                            </div>
+                            <p class="help-text">歌曲的主要语言。</p>
+                        </div>
+
+                        <div class="form-group required">
+                            <label for="songType">歌曲类型 <span class="required-mark">*</span></label>
+                            <select id="songType" name="songType" onchange="toggleSongTypeOther()">
+                                <option value="原创">原创</option>
+                                <option value="翻唱">翻唱</option>
+                                <option value="其他">其他</option>
+                            </select>
+                            <div id="songTypeOtherGroup" style="display: none; margin-top: 10px;">
+                                <input type="text" id="songTypeOther" name="songTypeOther" placeholder="请输入歌曲类型">
+                            </div>
+                            <p class="help-text">歌曲的类型分类。选择翻唱将自动添加翻唱歌曲分类。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="albumName">收录专辑</label>
+                            <div class="input-with-option">
+                                <input type="text" id="albumName" name="albumName" placeholder="如：Circus's Detail">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="albumNameLj" name="albumNameLj">
+                                    <span>套用{{lj}}模板</span>
+                                </label>
+                            </div>
+                            <p class="help-text">歌曲被收录的专辑名称，可选填写。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="producerNationality">P主国籍</label>
+                            <select id="producerNationality" name="producerNationality" onchange="toggleOtherNationality()">
+                                <option value="日本">日本</option>
+                                <option value="中国">中国</option>
+                                <option value="其他">其他</option>
+                            </select>
+                            <div id="otherNationalityGroup" style="display: none; margin-top: 10px;">
+                                <input type="text" id="otherNationality" name="otherNationality" placeholder="请输入国籍">
+                            </div>
+                            <p class="help-text">P主的所属国籍，用于生成分类。</p>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">👥</span>制作人员</h2>
+                        <p class="help-text" style="margin-bottom: 15px;">可自由添加、删除、拖动排序制作人员。同名人员在不同职位时会自动合并显示。超过5人时将自动折叠。</p>
+                        
+                        <div id="staffList" class="staff-list">
+                        </div>
+                        
+                        <button type="button" class="btn btn-small btn-outline" onclick="addStaffItem()" style="margin-top: 10px;">
+                            + 添加制作人员
+                        </button>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">📜</span>歌词</h2>
+                        
+                        <div class="form-group">
+                            <label for="translatorName">翻译者</label>
+                            <div class="input-with-option">
+                                <input type="text" id="translatorName" name="translatorName" placeholder="如：Fir(@Fir3k0)">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="translatorIsUser" name="translatorIsUser" onchange="toggleTranslatorUser()">
+                                    <span>本站用户</span>
+                                </label>
+                            </div>
+                            <p class="help-text">歌词翻译者的名称。勾选"本站用户"将生成[[User:翻译者|翻译者]]格式。</p>
+                        </div>
+
+                        <div id="translationSourceGroup">
+                            <div class="form-group">
+                                <label for="translationSource">翻译来源</label>
+                                <input type="text" id="translationSource" name="translationSource" placeholder="如：https://home.gamer.com.tw/artwork.php?sn=5924403">
+                                <p class="help-text">翻译转载的来源链接。</p>
+                            </div>
+                        </div>
+
+                        <div id="translationSourceNameGroup">
+                            <div class="form-group">
+                                <label for="translationSourceName">来源网站名</label>
+                                <input type="text" id="translationSourceName" name="translationSourceName" placeholder="如：巴哈姆特">
+                                <p class="help-text">来源网站的名称。</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label standalone">
+                                <input type="checkbox" id="multiSingerLyrics" name="multiSingerLyrics" onchange="toggleMultiSingerLyrics()">
+                                <span>多歌手歌词模式（使用LyricsKai/colors模板）</span>
+                            </label>
+                            <p class="help-text">勾选此项将使用支持多歌手颜色标注的歌词模板。详见<a href="https://voca.wiki/Template:LyricsKai/colors" target="_blank">Template:LyricsKai/colors</a>。</p>
+                        </div>
+
+                        <div id="multiSingerLyricsOptions" class="sub-options" style="display: none;">
+                            <div class="form-group">
+                                <label for="lyricsExtraParams">额外参数</label>
+                                <textarea id="lyricsExtraParams" name="lyricsExtraParams" rows="3" placeholder="如：colors=red;blue&#10;charas=初音未来;镜音铃"></textarea>
+                                <p class="help-text">LyricsKai/colors模板的额外参数，每行一个参数。常用参数包括colors、charas等。</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lyricsOriginal">
+                                歌词原文
+                                <span id="originalLineCount" class="line-count"></span>
+                            </label>
+                            <textarea id="lyricsOriginal" name="lyricsOriginal" rows="6" placeholder="请粘贴歌词原文..." oninput="updateLyricsLineCount()"></textarea>
+                            <div style="margin-top: 10px;">
+                                <label class="checkbox-label" id="furiganaLabel" style="margin-left: 20px;">
+                                    <input type="checkbox" id="useFurigana" name="useFurigana">
+                                    <span>振假名</span>
+                                </label>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="lyricsNotJapanese" name="lyricsNotJapanese" onchange="toggleLyricsLanguage()">
+                                    <span>原文不是日文</span>
+                                </label>
+                            </div>
+                            <div id="lyricsLanguageGroup" style="display: none; margin-top: 10px;">
+                                <label for="lyricsLanguageTag">原文语言标签</label>
+                                <input type="text" id="lyricsLanguageTag" name="lyricsLanguageTag" placeholder="如：en、zh-Hans、ko">
+                                <p class="help-text">填写原文的语言标签，作为LyricsKai模板的llang参数。详见<a href="https://voca.wiki/Help:%E8%AF%AD%E8%A8%80%E6%A0%87%E7%AD%BE" target="_blank">Help:语言标签</a>。</p>
+                            </div>
+                            <p class="help-text">歌曲的原始歌词。<strong>请勿使用机器翻译！</strong>勾选"振假名"将使用{{振假名}}模板包裹原文。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lyricsTranslated">
+                                歌词译文
+                                <span id="translatedLineCount" class="line-count"></span>
+                            </label>
+                            <textarea id="lyricsTranslated" name="lyricsTranslated" rows="6" placeholder="请粘贴歌词译文..." oninput="updateLyricsLineCount()"></textarea>
+                            <p class="help-text">歌词的中文翻译。</p>
+                        </div>
+
+                        <div id="lyricsLineWarning" class="warning-box" style="display: none;">
+                            <span class="warning-icon">⚠️</span>
+                            <span id="lyricsLineWarningText"></span>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">🏷️</span>其他分类</h2>
+                        
+                        <div class="form-group">
+                            <label for="additionalTemplates">其他模板</label>
+                            <textarea id="additionalTemplates" name="additionalTemplates" rows="3" placeholder="每行一个模板名&#10;如：&#10;The VOCALOID Collection2024春&#10;世界计划 彩色舞台 feat. 初音未来"></textarea>
+                            <p class="help-text">其他需要添加的导航模板，每行一个模板名称。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="additionalCategories">其他分类</label>
+                            <textarea id="additionalCategories" name="additionalCategories" rows="3" placeholder="每行一个分类名"></textarea>
+                            <p class="help-text">其他需要添加的分类，每行一个分类名称。</p>
+                        </div>
+                    </section>
+
+                    <div class="form-actions">
+                        <button type="button" id="generateBtn" class="btn btn-primary">生成WikiText</button>
+                        <button type="button" id="copyBtn" class="btn btn-secondary">复制到剪贴板</button>
+                        <button type="button" id="clearBtn" class="btn btn-danger">清空表单</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="output-column">
+                <section class="output-section">
+                    <h2><span class="section-icon">📄</span>生成的WikiText</h2>
+                    <div class="output-container">
+                        <textarea id="output" readonly rows="20" placeholder="点击[生成WikiText]按钮后，生成的文本将显示在这里..."></textarea>
+                    </div>
+                    <div class="output-actions">
+                        <button type="button" id="copyOutputBtn" class="btn btn-secondary">复制文本</button>
+                    </div>
+                </section>
+            </aside>
+        </main>
+
+        <footer>
+            <p>VocaScribe | VOCALOID 歌曲条目生成器 For Vocawiki</p>
+            <p class="footer-note">生成后请先预览再提交。作者：珞珝</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
