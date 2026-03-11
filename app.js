@@ -512,7 +512,7 @@ function toggleChineseSongHint() {
     const songLanguage = document.getElementById('songLanguage').value;
     const hintBox = document.getElementById('chineseSongHint');
     
-    if (songLanguage === '中文') {
+    if (songLanguage === '汉语') {
         hintBox.style.display = 'block';
     } else {
         hintBox.style.display = 'none';
