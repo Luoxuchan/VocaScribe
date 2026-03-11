@@ -907,9 +907,9 @@ function generateWikiText() {
         staffContent += `}}\n\n`;
 
         if (useHideTemplate) {
-            wikiText += `{{Hide|标题=制作人员|内容=\n`;
+            wikiText += `<div style="float:right">{{Hide|标题=本曲制作人一览|内容=\n`;
             wikiText += staffContent;
-            wikiText += `}}\n\n`;
+            wikiText += `}}</div>\n\n`;
         } else {
             wikiText += staffContent;
         }
