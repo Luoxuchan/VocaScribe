@@ -1,8 +1,132 @@
+function saveFormData() {
+    const formData = {
+        timestamp: Date.now(),
+        inputs: {},
+        checkboxes: {},
+        selects: {},
+        staffList: getStaffData(),
+        mvList: getMvData()
+    };
+
+    document.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(input => {
+        formData.inputs[input.id] = input.value;
+    });
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        formData.checkboxes[checkbox.id] = checkbox.checked;
+    });
+
+    document.querySelectorAll('select').forEach(select => {
+        formData.selects[select.id] = select.value;
+    });
+
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        if (radio.checked) {
+            formData.inputs[radio.name] = radio.value;
+        }
+    });
+
+    localStorage.setItem('vocaScribeFormData', JSON.stringify(formData));
+}
+
+function restoreFormData() {
+    const saved = localStorage.getItem('vocaScribeFormData');
+    if (!saved) return false;
+
+    try {
+        const formData = JSON.parse(saved);
+        
+        Object.entries(formData.inputs).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                if (element.type === 'radio') {
+                    const radios = document.querySelectorAll(`input[name="${element.name}"]`);
+                    radios.forEach(radio => {
+                        radio.checked = radio.value === value;
+                    });
+                } else {
+                    element.value = value;
+                }
+            }
+        });
+
+        Object.entries(formData.checkboxes).forEach(([id, checked]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.checked = checked;
+            }
+        });
+
+        Object.entries(formData.selects).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = value;
+            }
+        });
+
+        if (formData.staffList && formData.staffList.length > 0) {
+            const staffList = document.getElementById('staffList');
+            staffList.innerHTML = '';
+            formData.staffList.forEach(staff => {
+                addStaffItem(staff.role);
+                const items = staffList.querySelectorAll('.staff-item');
+                const lastItem = items[items.length - 1];
+                if (lastItem) {
+                    lastItem.querySelector('[data-field="name"]').value = staff.name;
+                    lastItem.querySelector('[data-field="lj"]').checked = staff.lj;
+                }
+            });
+        }
+
+        if (formData.mvList && formData.mvList.length > 0) {
+            const mvList = document.getElementById('mvList');
+            mvList.innerHTML = '';
+            formData.mvList.forEach((mv, index) => {
+                if (index === 0) {
+                    addMvOriginalItem();
+                } else {
+                    addMvVersionItem();
+                }
+                const items = mvList.querySelectorAll('.mv-item');
+                const lastItem = items[items.length - 1];
+                if (lastItem) {
+                    const idInput = lastItem.querySelector('[data-field="mvId"]');
+                    if (idInput) idInput.value = mv.id;
+                    const versionInput = lastItem.querySelector('[data-field="mvVersion"]');
+                    if (versionInput) versionInput.value = mv.version;
+                }
+            });
+        }
+
+        return true;
+    } catch (e) {
+        console.error('Failed to restore form data:', e);
+        return false;
+    }
+}
+
+function clearSavedFormData() {
+    localStorage.removeItem('vocaScribeFormData');
+}
+
+let saveTimer = null;
+
+function startAutoSave() {
+    if (saveTimer) clearInterval(saveTimer);
+    saveTimer = setInterval(() => {
+        saveFormData();
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        showToast(`表单已于 ${timeStr} 自动暂存`);
+    }, 60000);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('songForm');
     const generateBtn = document.getElementById('generateBtn');
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const saveBtn = document.getElementById('saveBtn');
     const copyOutputBtn = document.getElementById('copyOutputBtn');
     const output = document.getElementById('output');
 
@@ -13,6 +137,20 @@ document.addEventListener('DOMContentLoaded', function() {
     initPlatformCheckboxes();
     toggleProducerEntryName();
 
+    const hasSavedData = localStorage.getItem('vocaScribeFormData');
+    if (hasSavedData) {
+        setTimeout(() => {
+            if (confirm('检测到上次未完成的表单数据，是否恢复？')) {
+                restoreFormData();
+                showToast('表单数据已恢复');
+            } else {
+                clearSavedFormData();
+            }
+        }, 500);
+    }
+
+    startAutoSave();
+
     generateBtn.addEventListener('click', generateWikiText);
     copyBtn.addEventListener('click', function() {
         copyToClipboard(output.value);
@@ -21,6 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
         copyToClipboard(output.value);
     });
     clearBtn.addEventListener('click', clearForm);
+    saveBtn.addEventListener('click', function() {
+        saveFormData();
+        showToast('表单已暂存');
+    });
 });
 
 function initPlatformCheckboxes() {
@@ -1060,7 +1202,22 @@ function copyToClipboard(text) {
 
 function clearForm() {
     if (confirm('确定要清空所有表单内容吗？')) {
-        document.getElementById('songForm').reset();
+        document.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(input => {
+            input.value = '';
+        });
+        
+        document.querySelectorAll('select').forEach(select => {
+            select.selectedIndex = 0;
+        });
+        
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.checked = radio.hasAttribute('checked');
+        });
+        
         document.getElementById('output').value = '';
         document.getElementById('vocaloidCollectionOptions').style.display = 'none';
         document.getElementById('chineseSongHint').style.display = 'none';
@@ -1113,6 +1270,7 @@ function clearForm() {
         togglePlatformInputs();
         initStaffList();
         initMvList();
+        clearSavedFormData();
         showToast('表单已清空');
     }
 }

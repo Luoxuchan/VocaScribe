@@ -189,7 +189,7 @@
                             <div class="form-group" id="nndDateGroup">
                                 <label for="nndDate">Niconico投稿日期</label>
                                 <div class="date-input-group">
-                                    <input type="date" id="nndDatePicker" class="date-picker">
+                                    <input type="date" id="nndDatePicker" class="date-picker" lang="zh-CN">
                                     <input type="text" id="nndDate" name="nndDate" placeholder="如：20240427 或 2024年4月27日">
                                 </div>
                                 <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。</p>
@@ -205,7 +205,7 @@
                             <div class="form-group" id="bbDateGroup">
                                 <label for="bbDate">Bilibili投稿日期</label>
                                 <div class="date-input-group">
-                                    <input type="date" id="bbDatePicker" class="date-picker">
+                                    <input type="date" id="bbDatePicker" class="date-picker" lang="zh-CN">
                                     <input type="text" id="bbDate" name="bbDate" placeholder="如：20240513 或 2024年5月13日">
                                 </div>
                                 <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240513）或直接选择日期。</p>
@@ -221,7 +221,7 @@
                             <div class="form-group" id="ytDateGroup">
                                 <label for="ytDate">YouTube投稿日期</label>
                                 <div class="date-input-group">
-                                    <input type="date" id="ytDatePicker" class="date-picker">
+                                    <input type="date" id="ytDatePicker" class="date-picker" lang="zh-CN">
                                     <input type="text" id="ytDate" name="ytDate" placeholder="如：20240427 或 2024年4月27日">
                                 </div>
                                 <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。</p>
@@ -528,6 +528,7 @@
                     <div class="form-actions">
                         <button type="button" id="generateBtn" class="btn btn-primary">生成WikiText</button>
                         <button type="button" id="copyBtn" class="btn btn-secondary">复制到剪贴板</button>
+                        <button type="button" id="saveBtn" class="btn btn-success">暂存表单</button>
                         <button type="button" id="clearBtn" class="btn btn-danger">清空表单</button>
                     </div>
                 </div>
@@ -548,11 +549,7 @@
 
         <footer>
             <p>VocaScribe | VOCALOID 歌曲条目生成器 For Vocawiki</p>
-<<<<<<< HEAD
-            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha 1002</p>
-=======
-            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Build 1002</p>
->>>>>>> 59f50bb (Alpha Build 1002)
+            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha 1003</p>
         </footer>
     </div>
 
