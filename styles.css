@@ -499,6 +499,8 @@ header h1 {
 .output-actions {
     display: flex;
     justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
 }
 
 footer {
@@ -886,7 +888,7 @@ input[type="date"]:focus {
     }
 
     #output {
-        min-height: calc(100vh - 250px);
+        min-height: calc(100vh - 340px);
     }
 }
 

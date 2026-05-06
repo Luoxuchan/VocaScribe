@@ -124,7 +124,6 @@ function startAutoSave() {
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('songForm');
     const generateBtn = document.getElementById('generateBtn');
-    const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
     const saveBtn = document.getElementById('saveBtn');
     const copyOutputBtn = document.getElementById('copyOutputBtn');
@@ -136,12 +135,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initMvList();
     initPlatformCheckboxes();
     toggleProducerEntryName();
+    toggleAlbumSongMode();
+    toggleAlbumSongBilibiliMode();
 
     const hasSavedData = localStorage.getItem('vocaScribeFormData');
     if (hasSavedData) {
         setTimeout(() => {
             if (confirm('检测到上次未完成的表单数据，是否恢复？')) {
                 restoreFormData();
+                toggleAlbumSongMode();
+                toggleAlbumSongBilibiliMode();
                 showToast('表单数据已恢复');
             } else {
                 clearSavedFormData();
@@ -152,9 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
     startAutoSave();
 
     generateBtn.addEventListener('click', generateWikiText);
-    copyBtn.addEventListener('click', function() {
-        copyToClipboard(output.value);
-    });
     copyOutputBtn.addEventListener('click', function() {
         copyToClipboard(output.value);
     });
@@ -164,6 +164,71 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast('表单已暂存');
     });
 });
+
+function toggleAlbumSongMode() {
+    const isAlbumSong = document.getElementById('isAlbumSong').checked;
+    const platformContainer = document.getElementById('platformInputsContainer');
+    const albumSongContainer = document.getElementById('albumSongContainer');
+    const albumNameGroup = document.getElementById('albumNameGroup');
+    const albumRequiredMark = document.getElementById('albumRequiredMark');
+    const mvGroup = document.getElementById('mvGroup');
+
+    if (isAlbumSong) {
+        platformContainer.style.display = 'none';
+        albumSongContainer.style.display = 'block';
+        albumNameGroup.classList.add('required');
+        albumRequiredMark.style.display = 'inline';
+        // 检查是否勾选了"网易云没有这首歌"，如果是则显示MV部分
+        toggleAlbumSongBilibiliMode();
+    } else {
+        platformContainer.style.display = 'block';
+        albumSongContainer.style.display = 'none';
+        albumNameGroup.classList.remove('required');
+        albumRequiredMark.style.display = 'none';
+        mvGroup.style.display = 'block';
+        document.getElementById('music163NotFound').checked = false;
+    }
+}
+
+function toggleAlbumSongBilibiliMode() {
+    const isAlbumSong = document.getElementById('isAlbumSong').checked;
+    const notFound = document.getElementById('music163NotFound').checked;
+    const albumSongInputGroup = document.getElementById('albumSongInputGroup');
+    const mvGroup = document.getElementById('mvGroup');
+    
+    if (!isAlbumSong) {
+        // 不是专辑曲模式，确保mvGroup显示
+        mvGroup.style.display = 'block';
+        return;
+    }
+    
+    // 是专辑曲模式
+    if (notFound) {
+        albumSongInputGroup.style.display = 'none';
+        mvGroup.style.display = 'block';
+    } else {
+        albumSongInputGroup.style.display = 'block';
+        mvGroup.style.display = 'none';
+    }
+}
+
+function extractMusic163Id(link) {
+    if (!link) return null;
+    
+    const urlParams = new URLSearchParams(link.split('?')[1]);
+    const id = urlParams.get('id');
+    
+    if (id && /^\d+$/.test(id)) {
+        return id;
+    }
+    
+    const match = link.match(/song\/(\d+)/);
+    if (match) {
+        return match[1];
+    }
+    
+    return null;
+}
 
 function initPlatformCheckboxes() {
     const hasNiconico = document.getElementById('hasNiconico');
@@ -813,9 +878,23 @@ function generateWikiText() {
 
     const songNameOriginalLj = getCheckboxValue('songNameOriginalLj');
     const producerNameLj = getCheckboxValue('producerNameLj');
+    
+    const isAlbumSong = getCheckboxValue('isAlbumSong');
+    const music163Link = getFormValue('music163Link');
+    const music163NotFound = getCheckboxValue('music163NotFound');
 
     if (!songNameOriginal || !producerName || !vocalistName || !engineName) {
         showToast('请填写所有必填项！', 'error');
+        return;
+    }
+
+    if (isAlbumSong && !albumName) {
+        showToast('专辑曲必须填写收录专辑！', 'error');
+        return;
+    }
+
+    if (isAlbumSong && !music163NotFound && !music163Link) {
+        showToast('请填写网易云音乐单曲链接！', 'error');
         return;
     }
 
@@ -833,7 +912,9 @@ function generateWikiText() {
     if (brank) rankParams += `|brank=${brank}`;
     if (yrank) rankParams += `|yrank=${yrank}`;
     
-    wikiText += `{{虚拟歌手歌曲荣誉题头|${engineParam}${rankParams}}}\n`;
+    if (nrank || brank || yrank) {
+        wikiText += `{{虚拟歌手歌曲荣誉题头|${engineParam}${rankParams}}}\n`;
+    }
 
     const songboxTemplate = useNewSongbox ? 'VOCALOID_Songbox/new' : 'VOCALOID_Songbox';
     wikiText += `{{${songboxTemplate}\n`;
@@ -998,7 +1079,11 @@ function generateWikiText() {
 
     if (albumName) {
         const albumDisplay = applyLjTemplate(albumName, albumNameLj);
-        wikiText += `，并被收录于专辑《'''${albumDisplay}'''》`;
+        if (isAlbumSong) {
+            wikiText += `，收录于专辑《'''${albumDisplay}'''》中`;
+        } else {
+            wikiText += `，并被收录于专辑《'''${albumDisplay}'''》中`;
+        }
     }
     wikiText += `。\n`;
 
@@ -1057,29 +1142,66 @@ function generateWikiText() {
         }
     }
 
-    if (hasBilibili && bbId) {
-        wikiText += `{{BilibiliVideo|id=${bbId}}}\n`;
-        
-        const otherMvVersions = mvData.filter(mv => !mv.isOriginal);
-        if (otherMvVersions.length > 0) {
-            wikiText += `\n`;
-            otherMvVersions.forEach((mv, index) => {
-                wikiText += `; ${mv.version}\n`;
-                wikiText += `{{BilibiliVideo|id=${mv.id}}}\n`;
-            });
-        }
-        wikiText += `\n`;
-    } else if (mvData.length > 0) {
-        mvData.forEach((mv, index) => {
-            if (mvData.length > 1) {
-                wikiText += `; ${mv.version}\n`;
-            }
-            wikiText += `{{BilibiliVideo|id=${mv.id}}}\n`;
-            if (index < mvData.length - 1) {
+    if (isAlbumSong) {
+        if (music163NotFound) {
+            // 网易云没有这首歌，使用BilibiliVideo
+            if (hasBilibili && bbId) {
+                wikiText += `{{BilibiliVideo|id=${bbId}}}\n`;
+                
+                const otherMvVersions = mvData.filter(mv => !mv.isOriginal);
+                if (otherMvVersions.length > 0) {
+                    wikiText += `\n`;
+                    otherMvVersions.forEach((mv, index) => {
+                        wikiText += `; ${mv.version}\n`;
+                        wikiText += `{{BilibiliVideo|id=${mv.id}}}\n`;
+                    });
+                }
+                wikiText += `\n`;
+            } else if (mvData.length > 0) {
+                mvData.forEach((mv, index) => {
+                    if (mvData.length > 1) {
+                        wikiText += `; ${mv.version}\n`;
+                    }
+                    wikiText += `{{BilibiliVideo|id=${mv.id}}}\n`;
+                    if (index < mvData.length - 1) {
+                        wikiText += `\n`;
+                    }
+                });
                 wikiText += `\n`;
             }
-        });
-        wikiText += `\n`;
+        } else {
+            // 使用网易云音乐模板
+            const music163Id = extractMusic163Id(music163Link);
+            if (music163Id) {
+                wikiText += `{{music163|id=${music163Id}}}\n`;
+            }
+        }
+    } else {
+        // 普通模式
+        if (hasBilibili && bbId) {
+            wikiText += `{{BilibiliVideo|id=${bbId}}}\n`;
+            
+            const otherMvVersions = mvData.filter(mv => !mv.isOriginal);
+            if (otherMvVersions.length > 0) {
+                wikiText += `\n`;
+                otherMvVersions.forEach((mv, index) => {
+                    wikiText += `; ${mv.version}\n`;
+                    wikiText += `{{BilibiliVideo|id=${mv.id}}}\n`;
+                });
+            }
+            wikiText += `\n`;
+        } else if (mvData.length > 0) {
+            mvData.forEach((mv, index) => {
+                if (mvData.length > 1) {
+                    wikiText += `; ${mv.version}\n`;
+                }
+                wikiText += `{{BilibiliVideo|id=${mv.id}}}\n`;
+                if (index < mvData.length - 1) {
+                    wikiText += `\n`;
+                }
+            });
+            wikiText += `\n`;
+        }
     }
 
     wikiText += `== 歌词 ==\n`;
@@ -1174,6 +1296,14 @@ function generateWikiText() {
     document.getElementById('output').value = wikiText;
     showToast('WikiText生成成功！');
     
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const hintBox = document.getElementById('generationHint');
+    hintBox.textContent = `于${timeStr}生成的WikiText，生成之后的所有改动不会被同步。如有必要，请重新生成WikiText。`;
+    hintBox.style.display = 'block';
+    
+    document.getElementById('generateBtn').textContent = '重新生成';
+    
     document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -1266,10 +1396,16 @@ function clearForm() {
             }
         }
         
+        document.getElementById('music163NotFound').checked = false;
         toggleProducerEntryName();
         togglePlatformInputs();
+        toggleAlbumSongMode();
         initStaffList();
         initMvList();
+        
+        document.getElementById('generateBtn').textContent = '生成WikiText';
+        document.getElementById('generationHint').style.display = 'none';
+        
         clearSavedFormData();
         showToast('表单已清空');
     }

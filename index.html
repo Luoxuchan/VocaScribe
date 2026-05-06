@@ -96,7 +96,7 @@
                                 <input type="checkbox" id="useNewSongbox" name="useNewSongbox" checked>
                                 <span>使用新版Songbox</span>
                             </label>
-                            <p class="help-text">勾选时使用{{VOCALOID_Songbox/new}}模板，取消勾选使用{{VOCALOID_Songbox}}模板。</p>
+                            <p class="help-text">默认使用{{VOCALOID_Songbox/new}}模板，取消勾选使用{{VOCALOID_Songbox}}模板（不推荐）。</p>
                         </div>
                     </section>
 
@@ -162,7 +162,30 @@
                         <h2><span class="section-icon">🎬</span>投稿信息</h2>
                         
                         <div class="form-group">
-                            <label>投稿平台</label>
+                            <label class="checkbox-label standalone">
+                                <input type="checkbox" id="isAlbumSong" name="isAlbumSong" onchange="toggleAlbumSongMode()">
+                                <span>这是一首专辑曲</span>
+                            </label>
+                        </div>
+                        
+                        <div id="albumSongContainer" style="display: none;">
+                            <div id="albumSongInputGroup" class="form-group">
+                                <label for="music163Link">网易云音乐单曲链接</label>
+                                <input type="text" id="music163Link" name="music163Link" placeholder="https://music.163.com/song?id=……">
+                                <p class="help-text">在这里填写该曲的网易云音乐分享链接</p>
+                            </div>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label class="checkbox-label standalone">
+                                    <input type="checkbox" id="music163NotFound" name="music163NotFound" onchange="toggleAlbumSongBilibiliMode()">
+                                    <span>网易云没有这首歌</span>
+                                </label>
+                                <p class="help-text">改为添加歌曲的Bilibili视频</p>
+                            </div>
+                        </div>
+                        
+                        <div id="platformInputsContainer">
+                            <div class="form-group">
+                                <label>投稿平台</label>
                             <div class="checkbox-group">
                                 <label class="checkbox-label standalone">
                                     <input type="checkbox" id="hasNiconico" name="hasNiconico" onchange="togglePlatformInputs()">
@@ -226,6 +249,7 @@
                                 </div>
                                 <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。</p>
                             </div>
+                        </div>
                         </div>
 
                         <div id="mvGroup" class="form-group">
@@ -383,8 +407,8 @@
                             <p class="help-text">歌曲的类型分类。选择翻唱将自动添加翻唱歌曲分类。</p>
                         </div>
 
-                        <div class="form-group">
-                            <label for="albumName">收录专辑</label>
+                        <div class="form-group" id="albumNameGroup">
+                            <label for="albumName">收录专辑<span class="required-mark" id="albumRequiredMark" style="display:none;">*</span></label>
                             <div class="input-with-option">
                                 <input type="text" id="albumName" name="albumName" placeholder="如：Circus's Detail">
                                 <label class="checkbox-label">
@@ -392,7 +416,7 @@
                                     <span>套用{{lj}}模板</span>
                                 </label>
                             </div>
-                            <p class="help-text">歌曲被收录的专辑名称，可选填写。</p>
+                            <p class="help-text">歌曲被收录的专辑名称。</p>
                         </div>
 
                         <div class="form-group">
@@ -526,8 +550,6 @@
                     </section>
 
                     <div class="form-actions">
-                        <button type="button" id="generateBtn" class="btn btn-primary">生成WikiText</button>
-                        <button type="button" id="copyBtn" class="btn btn-secondary">复制到剪贴板</button>
                         <button type="button" id="saveBtn" class="btn btn-success">暂存表单</button>
                         <button type="button" id="clearBtn" class="btn btn-danger">清空表单</button>
                     </div>
@@ -540,7 +562,9 @@
                     <div class="output-container">
                         <textarea id="output" readonly rows="20" placeholder="点击[生成WikiText]按钮后，生成的文本将显示在这里..."></textarea>
                     </div>
+                    <div id="generationHint" class="hint-box" style="display: none;"></div>
                     <div class="output-actions">
+                        <button type="button" id="generateBtn" class="btn btn-primary">生成WikiText</button>
                         <button type="button" id="copyOutputBtn" class="btn btn-secondary">复制文本</button>
                     </div>
                 </section>
@@ -549,7 +573,7 @@
 
         <footer>
             <p>VocaScribe | VOCALOID 歌曲条目生成器 For Vocawiki</p>
-            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha 1003</p>
+            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha 1007</p>
         </footer>
     </div>
 
