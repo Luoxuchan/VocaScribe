@@ -5,7 +5,8 @@ function saveFormData() {
         checkboxes: {},
         selects: {},
         staffList: getStaffData(),
-        mvList: getMvData()
+        mvList: getMvData(),
+        vocalistList: getVocalistData()
     };
 
     document.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(input => {
@@ -98,6 +99,24 @@ function restoreFormData() {
             });
         }
 
+        if (formData.vocalistList && formData.vocalistList.length > 0) {
+            const vocalistList = document.getElementById('vocalistList');
+            vocalistList.innerHTML = '';
+            formData.vocalistList.forEach((vocalist, index) => {
+                addVocalistItem();
+                const items = vocalistList.querySelectorAll('.vocalist-item');
+                const lastItem = items[items.length - 1];
+                if (lastItem) {
+                    const nameInput = lastItem.querySelector('[data-field="vocalistName"]');
+                    if (nameInput) nameInput.value = vocalist.name;
+                    const engineInput = lastItem.querySelector('[data-field="vocalistEngine"]');
+                    if (engineInput) engineInput.value = vocalist.engine;
+                    const templateInput = lastItem.querySelector('[data-field="vocalistTemplate"]');
+                    if (templateInput) templateInput.value = vocalist.template;
+                }
+            });
+        }
+
         return true;
     } catch (e) {
         console.error('Failed to restore form data:', e);
@@ -133,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initDatePickers();
     updateLyricsLineCount();
     initMvList();
+    initVocalistList();
     initPlatformCheckboxes();
     toggleProducerEntryName();
     toggleAlbumSongMode();
@@ -171,6 +191,8 @@ function toggleAlbumSongMode() {
     const albumSongContainer = document.getElementById('albumSongContainer');
     const albumNameGroup = document.getElementById('albumNameGroup');
     const albumRequiredMark = document.getElementById('albumRequiredMark');
+    const albumReleaseDateGroup = document.getElementById('albumReleaseDateGroup');
+    const albumReleaseDateRequiredMark = document.getElementById('albumReleaseDateRequiredMark');
     const mvGroup = document.getElementById('mvGroup');
 
     if (isAlbumSong) {
@@ -178,6 +200,8 @@ function toggleAlbumSongMode() {
         albumSongContainer.style.display = 'block';
         albumNameGroup.classList.add('required');
         albumRequiredMark.style.display = 'inline';
+        albumReleaseDateGroup.classList.add('required');
+        albumReleaseDateRequiredMark.style.display = 'inline';
         // 检查是否勾选了"网易云没有这首歌"，如果是则显示MV部分
         toggleAlbumSongBilibiliMode();
     } else {
@@ -185,6 +209,8 @@ function toggleAlbumSongMode() {
         albumSongContainer.style.display = 'none';
         albumNameGroup.classList.remove('required');
         albumRequiredMark.style.display = 'none';
+        albumReleaseDateGroup.classList.remove('required');
+        albumReleaseDateRequiredMark.style.display = 'none';
         mvGroup.style.display = 'block';
         document.getElementById('music163NotFound').checked = false;
     }
@@ -455,6 +481,63 @@ function addMvOriginalItem() {
     mvList.appendChild(mvItem);
 }
 
+let vocalistItemId = 0;
+
+function initVocalistList() {
+    const vocalistList = document.getElementById('vocalistList');
+    if (vocalistList) {
+        vocalistList.innerHTML = '';
+        addVocalistItem();
+    }
+}
+
+function addVocalistItem() {
+    const vocalistList = document.getElementById('vocalistList');
+    const itemId = vocalistItemId++;
+    const isFirst = vocalistList.querySelectorAll('.vocalist-item').length === 0;
+    
+    const vocalistItem = document.createElement('div');
+    vocalistItem.className = `vocalist-item${isFirst ? ' vocalist-item-original' : ''}`;
+    vocalistItem.dataset.itemId = itemId;
+    
+    vocalistItem.innerHTML = `
+        <input type="text" class="vocalist-name" placeholder="歌姬名称${isFirst ? ' *' : ''}" data-field="vocalistName"${isFirst ? ' required' : ''}>
+        <input type="text" class="vocalist-engine" placeholder="合成引擎${isFirst ? ' *' : ''}" data-field="vocalistEngine">
+        <input type="text" class="vocalist-template" placeholder="歌姬模板" data-field="vocalistTemplate">
+        ${isFirst ? '<span class="vocalist-placeholder" style="width: 28px; flex-shrink: 0;"></span>' : '<button type="button" class="btn-remove" onclick="removeVocalistItem(' + itemId + ')">×</button>'}
+    `;
+    
+    vocalistList.appendChild(vocalistItem);
+}
+
+function removeVocalistItem(itemId) {
+    const vocalistItem = document.querySelector(`.vocalist-item[data-item-id="${itemId}"]`);
+    if (vocalistItem && !vocalistItem.classList.contains('vocalist-item-original')) {
+        vocalistItem.remove();
+    }
+}
+
+function getVocalistData() {
+    const vocalistItems = document.querySelectorAll('.vocalist-item');
+    const vocalistData = [];
+    
+    vocalistItems.forEach(item => {
+        const nameInput = item.querySelector('[data-field="vocalistName"]');
+        const engineInput = item.querySelector('[data-field="vocalistEngine"]');
+        const templateInput = item.querySelector('[data-field="vocalistTemplate"]');
+        
+        const name = nameInput ? nameInput.value.trim() : '';
+        const engine = engineInput ? engineInput.value.trim() : '';
+        const template = templateInput ? templateInput.value.trim() : '';
+        
+        if (name) {
+            vocalistData.push({ name, engine, template });
+        }
+    });
+    
+    return vocalistData;
+}
+
 function addMvVersionItem() {
     const mvList = document.getElementById('mvList');
     const itemId = mvItemId++;
@@ -670,7 +753,8 @@ function initDatePickers() {
     const datePairs = [
         ['nndDatePicker', 'nndDate'],
         ['bbDatePicker', 'bbDate'],
-        ['ytDatePicker', 'ytDate']
+        ['ytDatePicker', 'ytDate'],
+        ['albumReleaseDatePicker', 'albumReleaseDate']
     ];
     
     datePairs.forEach(([pickerId, inputId]) => {
@@ -804,10 +888,8 @@ function generateWikiText() {
     const songNameEnglish = getFormValue('songNameEnglish');
     const producerName = getFormValue('producerName');
     const producerEntryName = getFormValue('producerEntryName');
-    const vocalistName = getFormValue('vocalistName');
-    const engineName = getFormValue('engineName');
+    const vocalistData = getVocalistData();
     const producerTemplate = getFormValue('producerTemplate');
-    const vocalistTemplate = getFormValue('vocalistTemplate');
     const useNewSongbox = getCheckboxValue('useNewSongbox');
 
     const imageName = getFormValue('imageName');
@@ -883,13 +965,20 @@ function generateWikiText() {
     const music163Link = getFormValue('music163Link');
     const music163NotFound = getCheckboxValue('music163NotFound');
 
-    if (!songNameOriginal || !producerName || !vocalistName || !engineName) {
-        showToast('请填写所有必填项！', 'error');
+    const hasValidVocalist = vocalistData.some(v => v.name && v.engine);
+    if (!songNameOriginal || !producerName || vocalistData.length === 0 || !hasValidVocalist) {
+        showToast('请填写所有必填项（歌姬名称和合成引擎）！', 'error');
         return;
     }
 
     if (isAlbumSong && !albumName) {
         showToast('专辑曲必须填写收录专辑！', 'error');
+        return;
+    }
+
+    const albumReleaseDate = getFormValue('albumReleaseDate');
+    if (isAlbumSong && !albumReleaseDate) {
+        showToast('专辑曲必须填写专辑发行日期！', 'error');
         return;
     }
 
@@ -904,7 +993,9 @@ function generateWikiText() {
         wikiText += `{{标题替换|{{lj|${songNameOriginal}}}}}\n`;
     }
 
-    const engineParts = engineName.split(/[、,，]/).map(e => e.trim()).filter(e => e);
+    const allEngines = vocalistData.map(v => v.engine).filter(e => e);
+    const uniqueEngines = [...new Set(allEngines.join('、').split(/[、,，]/).map(e => e.trim()).filter(e => e))];
+    const engineParts = uniqueEngines;
     const engineParam = engineParts.join('|');
     
     let rankParams = '';
@@ -939,7 +1030,11 @@ function generateWikiText() {
         wikiText += `|颜色 = ${customColor}\n`;
     }
 
-    wikiText += `|演唱 = ${formatVocalistName(vocalistName)}\n`;
+    const vocalistNamesDisplay = vocalistData.map(v => v.name).filter(n => n).map(n => {
+        const names = n.split(/[、,，]/).map(name => name.trim()).filter(name => name);
+        return names.map(name => `[[${name}]]`).join('、');
+    }).join('、');
+    wikiText += `|演唱 = ${vocalistNamesDisplay}\n`;
 
     let songNameDisplay = applyLjTemplate(songNameOriginal, songNameOriginalLj);
     if (songNameEnglish) {
@@ -1044,48 +1139,58 @@ function generateWikiText() {
     } else {
         producerDisplayLink = `[[${producerName}]]`;
     }
-    wikiText += `是${producerDisplayLink}于`;
 
-    const postDates = [];
-    const postSites = [];
-    
-    if (hasNiconico && nndId) {
-        postDates.push({ date: nndDate, site: 'niconico' });
-        postSites.push('niconico');
-    }
-    if (hasYouTube && ytId) {
-        postDates.push({ date: ytDate, site: 'YouTube' });
-        postSites.push('YouTube');
-    }
-    if (hasBilibili && bbId) {
-        postDates.push({ date: bbDate, site: 'bilibili' });
-        postSites.push('bilibili');
-    }
-
-    if (postDates.length > 0) {
-        if (useUnifiedPostTime) {
-            wikiText += `${unifiedPostTime}投稿至[[${postSites.join(']]、[[')}]]的`;
-        } else {
-            for (let i = 0; i < postDates.length; i++) {
-                if (i > 0) wikiText += '、';
-                wikiText += `${postDates[i].date}投稿至[[${postDates[i].site}]]`;
-            }
-            wikiText += '的';
-        }
-    }
+    const vocalistNamesSimple = vocalistData.map(v => v.name).filter(n => n).map(n => {
+        const names = n.split(/[、,，]/).map(name => name.trim()).filter(name => name);
+        return names.join('、');
+    }).join('、');
 
     const engineDisplay = engineParts.map(e => `[[${e}]]`).join('和');
-    wikiText += `${engineDisplay}${songLanguage}${songType}歌曲，由${formatVocalistName(vocalistName)}演唱`;
 
-    if (albumName) {
+    if (isAlbumSong) {
+        // 专辑曲模式：《'''歌名'''》是[[P主]]于发行日期发售的专辑《'''专辑名'''》的收录曲目，由[[歌姬]]演唱。
         const albumDisplay = applyLjTemplate(albumName, albumNameLj);
-        if (isAlbumSong) {
-            wikiText += `，收录于专辑《'''${albumDisplay}'''》中`;
-        } else {
+        wikiText += `是${producerDisplayLink}于${albumReleaseDate}发售的${engineDisplay}专辑《'''${albumDisplay}'''》的收录曲目，由${vocalistNamesSimple}演唱。\n`;
+    } else {
+        // 非专辑曲模式：保持原逻辑不变
+        wikiText += `是${producerDisplayLink}于`;
+
+        const postDates = [];
+        const postSites = [];
+        
+        if (hasNiconico && nndId) {
+            postDates.push({ date: nndDate, site: 'niconico' });
+            postSites.push('niconico');
+        }
+        if (hasYouTube && ytId) {
+            postDates.push({ date: ytDate, site: 'YouTube' });
+            postSites.push('YouTube');
+        }
+        if (hasBilibili && bbId) {
+            postDates.push({ date: bbDate, site: 'bilibili' });
+            postSites.push('bilibili');
+        }
+
+        if (postDates.length > 0) {
+            if (useUnifiedPostTime) {
+                wikiText += `${unifiedPostTime}投稿至[[${postSites.join(']]、[[')}]]的`;
+            } else {
+                for (let i = 0; i < postDates.length; i++) {
+                    if (i > 0) wikiText += '、';
+                    wikiText += `${postDates[i].date}投稿至[[${postDates[i].site}]]`;
+                }
+                wikiText += '的';
+            }
+        }
+
+        wikiText += `${engineDisplay}${songLanguage}${songType}歌曲，由${vocalistNamesSimple}演唱`;
+
+        if (albumName) {
+            const albumDisplay = applyLjTemplate(albumName, albumNameLj);
             wikiText += `，并被收录于专辑《'''${albumDisplay}'''》中`;
         }
+        wikiText += `。\n`;
     }
-    wikiText += `。\n`;
 
     if (participateVocaloidCollection && vocaloidCollectionSeason) {
         wikiText += `\n本曲参与了[[The VOCALOID Collection]](${applyLjTemplate(vocaloidCollectionSeason, true)})活动`;
@@ -1128,8 +1233,12 @@ function generateWikiText() {
             groupNum++;
         }
 
+        const vocalistForStaff = vocalistData.map(v => v.name).filter(n => n).map(n => {
+            const names = n.split(/[、,，]/).map(name => name.trim()).filter(name => name);
+            return names.join('、');
+        }).join('、');
         staffContent += `|group${groupNum} = 演唱\n`;
-        staffContent += `|list${groupNum} = ${formatVocalistNameSimple(vocalistName)}\n`;
+        staffContent += `|list${groupNum} = ${vocalistForStaff}\n`;
 
         staffContent += `}}\n\n`;
 
@@ -1257,9 +1366,11 @@ function generateWikiText() {
         wikiText += `{{${producerTemplate}}}\n`;
     }
 
-    if (vocalistTemplate) {
-        wikiText += `{{${vocalistTemplate}}}\n`;
-    }
+    vocalistData.forEach(v => {
+        if (v.template) {
+            wikiText += `{{${v.template}}}\n`;
+        }
+    });
 
     if (additionalTemplates) {
         const templates = additionalTemplates.split('\n').filter(t => t.trim());
@@ -1271,10 +1382,14 @@ function generateWikiText() {
     const finalNationality = producerNationality === '其他' ? otherNationality : producerNationality;
     wikiText += `\n[[Category:${finalNationality}音乐作品]]\n`;
     
-    const vocalistNames = vocalistName.split(/[、,，]/).map(n => n.trim()).filter(n => n);
-    for (const name of vocalistNames) {
-        wikiText += `[[Category:${name}歌曲]]\n`;
-    }
+    vocalistData.forEach(v => {
+        if (!v.template && v.name) {
+            const names = v.name.split(/[、,，]/).map(n => n.trim()).filter(n => n);
+            names.forEach(name => {
+                wikiText += `[[Category:${name}歌曲]]\n`;
+            });
+        }
+    });
 
     for (const engine of engineParts) {
         wikiText += `[[Category:使用${engine}的歌曲]]\n`;
@@ -1402,6 +1517,7 @@ function clearForm() {
         toggleAlbumSongMode();
         initStaffList();
         initMvList();
+        initVocalistList();
         
         document.getElementById('generateBtn').textContent = '生成WikiText';
         document.getElementById('generationHint').style.display = 'none';

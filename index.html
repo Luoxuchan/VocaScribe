@@ -67,28 +67,10 @@
                             <p class="help-text">歌曲创作者（P主）的名称，日文内容建议勾选套用{{lj}}模板。</p>
                         </div>
 
-                        <div class="form-group required">
-                            <label for="vocalistName">歌姬名称 <span class="required-mark">*</span></label>
-                            <input type="text" id="vocalistName" name="vocalistName" placeholder="如：初音未来、重音Teto（多个用顿号分隔）">
-                            <p class="help-text">演唱的虚拟歌手名称，多个歌姬用顿号分隔。将自动生成[[歌姬名]]格式。</p>
-                        </div>
-
-                        <div class="form-group required">
-                            <label for="engineName">歌姬对应引擎 <span class="required-mark">*</span></label>
-                            <input type="text" id="engineName" name="engineName" placeholder="如：VOCALOID、Synthesizer V（多个用顿号分隔）">
-                            <p class="help-text">虚拟歌手使用的语音合成引擎，多个引擎用顿号分隔。</p>
-                        </div>
-
                         <div class="form-group">
                             <label for="producerTemplate">P主模板名称</label>
                             <input type="text" id="producerTemplate" name="producerTemplate" placeholder="如：Satsuki">
                             <p class="help-text">P主对应的导航模板名称，可在<a href="https://voca.wiki/Category:P%E4%B8%BB%E6%A8%A1%E6%9D%BF" target="_blank">Category:P主模板</a>中查找。留空则不添加。</p>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="vocalistTemplate">歌姬模板名称</label>
-                            <input type="text" id="vocalistTemplate" name="vocalistTemplate" placeholder="如：重音Teto/2024">
-                            <p class="help-text">歌姬对应的导航模板名称，可在<a href="https://voca.wiki/Category:%E8%99%9A%E6%8B%9F%E6%AD%8C%E6%89%8B%E6%A8%A1%E6%9D%BF" target="_blank">Category:虚拟歌手模板</a>中查找。暂无需在页面中添加初音未来歌手模板。留空则不添加。</p>
                         </div>
                         
                         <div class="form-group">
@@ -98,6 +80,18 @@
                             </label>
                             <p class="help-text">默认使用{{VOCALOID_Songbox/new}}模板，取消勾选使用{{VOCALOID_Songbox}}模板（不推荐）。</p>
                         </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h2><span class="section-icon">🎤</span>歌姬信息</h2>
+                        <p class="help-text" style="margin-bottom: 15px;">可自由添加、删除歌姬信息。多个歌姬时，合成引擎可只填写一个。<br>歌姬对应的导航模板名称，可在<a href="https://voca.wiki/Category:%E8%99%9A%E6%8B%9F%E6%AD%8C%E6%89%8B%E6%A8%A1%E6%9D%BF" target="_blank">Category:虚拟歌手模板</a>中查找。暂无需在页面中添加初音未来歌手模板。</p>
+                        
+                        <div id="vocalistList" class="vocalist-list">
+                        </div>
+                        
+                        <button type="button" class="btn btn-small btn-outline" onclick="addVocalistItem()" style="margin-top: 10px;">
+                            + 添加歌姬
+                        </button>
                     </section>
 
                     <section class="form-section">
@@ -159,7 +153,7 @@
                     </section>
 
                     <section class="form-section">
-                        <h2><span class="section-icon">🎬</span>投稿信息</h2>
+                        <h2><span class="section-icon">🎬</span>投稿·专辑信息</h2>
                         
                         <div class="form-group">
                             <label class="checkbox-label standalone">
@@ -266,6 +260,27 @@
                             <button type="button" class="btn btn-small btn-outline" onclick="addMvVersionItem()" style="margin-top: 10px;">
                                 + 添加其他版本
                             </button>
+                        </div>
+
+                        <div class="form-group" id="albumNameGroup">
+                            <label for="albumName">收录专辑<span class="required-mark" id="albumRequiredMark" style="display:none;">*</span></label>
+                            <div class="input-with-option">
+                                <input type="text" id="albumName" name="albumName" placeholder="如：Circus's Detail">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="albumNameLj" name="albumNameLj">
+                                    <span>套用{{lj}}模板</span>
+                                </label>
+                            </div>
+                            <p class="help-text">歌曲被收录的专辑名称，专辑曲必填。</p>
+                        </div>
+
+                        <div class="form-group" id="albumReleaseDateGroup">
+                            <label for="albumReleaseDate">专辑发行日期<span class="required-mark" id="albumReleaseDateRequiredMark" style="display:none;">*</span></label>
+                            <div class="date-input-group">
+                                <input type="date" id="albumReleaseDatePicker" class="date-picker" lang="zh-CN">
+                                <input type="text" id="albumReleaseDate" name="albumReleaseDate" placeholder="如：20240427 或 2024年4月27日">
+                            </div>
+                            <p class="help-text">专辑的发行日期。格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。专辑曲必填。</p>
                         </div>
                     </section>
 
@@ -405,18 +420,6 @@
                                 <input type="text" id="songTypeOther" name="songTypeOther" placeholder="请输入歌曲类型">
                             </div>
                             <p class="help-text">歌曲的类型分类。选择翻唱将自动添加翻唱歌曲分类。</p>
-                        </div>
-
-                        <div class="form-group" id="albumNameGroup">
-                            <label for="albumName">收录专辑<span class="required-mark" id="albumRequiredMark" style="display:none;">*</span></label>
-                            <div class="input-with-option">
-                                <input type="text" id="albumName" name="albumName" placeholder="如：Circus's Detail">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="albumNameLj" name="albumNameLj">
-                                    <span>套用{{lj}}模板</span>
-                                </label>
-                            </div>
-                            <p class="help-text">歌曲被收录的专辑名称。</p>
                         </div>
 
                         <div class="form-group">
@@ -573,7 +576,7 @@
 
         <footer>
             <p>VocaScribe | VOCALOID 歌曲条目生成器 For Vocawiki</p>
-            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha 1007</p>
+            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha 1008</p>
         </footer>
     </div>
 
