@@ -173,7 +173,7 @@
                                     <input type="checkbox" id="music163NotFound" name="music163NotFound" onchange="toggleAlbumSongBilibiliMode()">
                                     <span>网易云没有这首歌</span>
                                 </label>
-                                <p class="help-text">改为添加歌曲的Bilibili视频</p>
+                                <p class="help-text">改为添加歌曲的bilibili视频</p>
                             </div>
                         </div>
                         
@@ -183,72 +183,115 @@
                             <div class="checkbox-group">
                                 <label class="checkbox-label standalone">
                                     <input type="checkbox" id="hasNiconico" name="hasNiconico" onchange="togglePlatformInputs()">
-                                    <span>Niconico投稿</span>
+                                    <span>niconico投稿</span>
                                 </label>
                                 <label class="checkbox-label standalone">
                                     <input type="checkbox" id="hasBilibili" name="hasBilibili" onchange="togglePlatformInputs()">
-                                    <span>Bilibili投稿</span>
+                                    <span>bilibili投稿</span>
                                 </label>
                                 <label class="checkbox-label standalone">
                                     <input type="checkbox" id="hasYouTube" name="hasYouTube" onchange="togglePlatformInputs()">
                                     <span>YouTube投稿</span>
                                 </label>
                             </div>
-                            <p class="help-text">勾选歌曲投稿的平台，将显示对应的ID和日期输入框。若各平台投稿日期相同或只有一个平台投稿，将使用统一"投稿时间"参数。</p>
+                            <p class="help-text">投稿到三大平台的原曲投稿。</p>
                         </div>
 
                         <div id="niconicoInputGroup" class="sub-options" style="display: none;">
                             <div class="form-group">
-                                <label for="nndId">Niconico ID</label>
-                                <input type="text" id="nndId" name="nndId" placeholder="如：sm43708803">
+                                <label for="nndId">niconico ID</label>
+                                <div class="input-with-option">
+                                    <input type="text" id="nndId" name="nndId" placeholder="如：sm43708803">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="nndDeleted" name="nndDeleted" onchange="toggleDeletedFinalView('nnd')">
+                                        <span>稿件已删除</span>
+                                    </label>
+                                </div>
                                 <p class="help-text">填写 https://www.nicovideo.jp/watch/ 后面的ID部分。</p>
                             </div>
                             <div class="form-group" id="nndDateGroup">
-                                <label for="nndDate">Niconico投稿日期</label>
-                                <div class="date-input-group">
+                                <label for="nndDate">niconico投稿日期</label>
+                                <div class="date-input-group unified-date-group">
                                     <input type="date" id="nndDatePicker" class="date-picker" lang="zh-CN">
-                                    <input type="text" id="nndDate" name="nndDate" placeholder="如：20240427 或 2024年4月27日">
+                                    <input type="text" id="nndDate" name="nndDate" placeholder="如：20070831 或 2007年8月31日">
                                 </div>
-                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。</p>
+                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20070831）或直接选择日期。</p>
+                            </div>
+                            <div class="form-group" id="nndFinalViewGroup" style="display: none;">
+                                <label for="nndFinalView">最终播放数</label>
+                                <input type="text" id="nndFinalView" name="nndFinalView" placeholder="如：100000 或 100,000">
+                                <p class="help-text">该稿件被删除时的最终播放数，支持带千位分隔符的数字。</p>
                             </div>
                         </div>
 
                         <div id="bilibiliInputGroup" class="sub-options" style="display: none;">
                             <div class="form-group">
-                                <label for="bbId">Bilibili ID</label>
-                                <input type="text" id="bbId" name="bbId" placeholder="如：BV15J4m1A7qy" oninput="syncBilibiliIdToMv()">
+                                <label for="bbId">bilibili ID</label>
+                                <div class="input-with-option">
+                                    <input type="text" id="bbId" name="bbId" placeholder="如：BV15J4m1A7qy" oninput="syncBilibiliIdToMv()">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="bbDeleted" name="bbDeleted" onchange="toggleDeletedFinalView('bb')">
+                                        <span>稿件已删除</span>
+                                    </label>
+                                </div>
                                 <p class="help-text">填写 https://www.bilibili.com/video/ 后面的BV号。不收录授权等非官方投稿。</p>
                             </div>
                             <div class="form-group" id="bbDateGroup">
-                                <label for="bbDate">Bilibili投稿日期</label>
-                                <div class="date-input-group">
+                                <label for="bbDate">bilibili投稿日期</label>
+                                <div class="date-input-group unified-date-group">
                                     <input type="date" id="bbDatePicker" class="date-picker" lang="zh-CN">
-                                    <input type="text" id="bbDate" name="bbDate" placeholder="如：20240513 或 2024年5月13日">
+                                    <input type="text" id="bbDate" name="bbDate" placeholder="如：20070831 或 2007年8月31日">
                                 </div>
-                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240513）或直接选择日期。</p>
+                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20070831）或直接选择日期。</p>
+                            </div>
+                            <div class="form-group" id="bbFinalViewGroup" style="display: none;">
+                                <label for="bbFinalView">最终播放数</label>
+                                <input type="text" id="bbFinalView" name="bbFinalView" placeholder="如：100000 或 100,000">
+                                <p class="help-text">该稿件被删除时的最终播放数，支持带千位分隔符的数字。</p>
                             </div>
                         </div>
 
                         <div id="youtubeInputGroup" class="sub-options" style="display: none;">
                             <div class="form-group">
                                 <label for="ytId">YouTube ID</label>
-                                <input type="text" id="ytId" name="ytId" placeholder="如：19y8YTbvri8">
+                                <div class="input-with-option">
+                                    <input type="text" id="ytId" name="ytId" placeholder="如：19y8YTbvri8">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="ytDeleted" name="ytDeleted" onchange="toggleDeletedFinalView('yt')">
+                                        <span>稿件已删除</span>
+                                    </label>
+                                </div>
                                 <p class="help-text">填写 https://www.youtube.com/watch?v= 后面的ID部分。</p>
                             </div>
                             <div class="form-group" id="ytDateGroup">
                                 <label for="ytDate">YouTube投稿日期</label>
-                                <div class="date-input-group">
+                                <div class="date-input-group unified-date-group">
                                     <input type="date" id="ytDatePicker" class="date-picker" lang="zh-CN">
-                                    <input type="text" id="ytDate" name="ytDate" placeholder="如：20240427 或 2024年4月27日">
+                                    <input type="text" id="ytDate" name="ytDate" placeholder="如：20070831 或 2007年8月31日">
                                 </div>
-                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。</p>
+                                <p class="help-text">格式为YYYY年mm月dd日。支持八位数字格式（如20070831）或直接选择日期。</p>
+                            </div>
+                            <div class="form-group" id="ytFinalViewGroup" style="display: none;">
+                                <label for="ytFinalView">最终播放数</label>
+                                <input type="text" id="ytFinalView" name="ytFinalView" placeholder="如：100000 或 100,000">
+                                <p class="help-text">该稿件被删除时的最终播放数，支持带千位分隔符的数字。</p>
                             </div>
                         </div>
                         </div>
 
+                        <div class="form-group" style="margin-top: 10px;">
+                            <button type="button" class="btn btn-small btn-outline" onclick="addOtherSubmissionItem()">
+                                + 添加其它稿件
+                            </button>
+                            <p class="help-text">添加来自其他平台或不同版本的投稿。</p>
+                        </div>
+
+                        <div id="otherSubmissionsList" class="other-submissions-list">
+                        </div>
+
                         <div id="mvGroup" class="form-group">
-                            <label>歌曲MV（Bilibili）</label>
-                            <p class="help-text">添加歌曲的Bilibili视频。原曲始终在第一位，可添加其他版本。勾选Bilibili投稿后，原曲BV号将自动同步。</p>
+                            <label>歌曲MV（bilibili）</label>
+                            <p class="help-text">添加歌曲的bilibili视频。原曲始终在第一位，可添加其他版本。勾选bilibili投稿后，原曲BV号将自动同步。</p>
                             
                             <div class="mv-list" id="mvList">
                                 <div class="mv-item mv-item-original">
@@ -265,7 +308,7 @@
                         <div class="form-group" id="albumNameGroup">
                             <label for="albumName">收录专辑<span class="required-mark" id="albumRequiredMark" style="display:none;">*</span></label>
                             <div class="input-with-option">
-                                <input type="text" id="albumName" name="albumName" placeholder="如：Circus's Detail">
+                                <input type="text" id="albumName" name="albumName" placeholder="如：Circus's Detail" oninput="toggleAlbumReleaseDate()">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="albumNameLj" name="albumNameLj">
                                     <span>套用{{lj}}模板</span>
@@ -274,13 +317,13 @@
                             <p class="help-text">歌曲被收录的专辑名称，专辑曲必填。</p>
                         </div>
 
-                        <div class="form-group" id="albumReleaseDateGroup">
+                        <div class="form-group" id="albumReleaseDateGroup" style="display:none;">
                             <label for="albumReleaseDate">专辑发行日期<span class="required-mark" id="albumReleaseDateRequiredMark" style="display:none;">*</span></label>
-                            <div class="date-input-group">
+                            <div class="date-input-group unified-date-group">
                                 <input type="date" id="albumReleaseDatePicker" class="date-picker" lang="zh-CN">
-                                <input type="text" id="albumReleaseDate" name="albumReleaseDate" placeholder="如：20240427 或 2024年4月27日">
+                                <input type="text" id="albumReleaseDate" name="albumReleaseDate" placeholder="如：20070831 或 2007年8月31日">
                             </div>
-                            <p class="help-text">专辑的发行日期。格式为YYYY年mm月dd日。支持八位数字格式（如20240427）或直接选择日期。专辑曲必填。</p>
+                            <p class="help-text">专辑的发行日期。格式为YYYY年mm月dd日。支持八位数字格式（如20070831）或直接选择日期。专辑曲必填。</p>
                         </div>
                     </section>
 
@@ -288,7 +331,7 @@
                         <h2><span class="section-icon">🏆</span>荣誉信息</h2>
                         
                         <div class="form-group">
-                            <label for="nrank">Niconico荣誉等级</label>
+                            <label for="nrank">niconico荣誉等级</label>
                             <select id="nrank" name="nrank">
                                 <option value="">无</option>
                                 <option value="1">殿堂</option>
@@ -296,11 +339,11 @@
                                 <option value="3">神话</option>
                                 <option value="4">破亿</option>
                             </select>
-                            <p class="help-text">歌曲在Niconico的播放量成就等级。殿堂：10万播放；传说：100万播放；神话：1000万播放；破亿：1亿播放。</p>
+                            <p class="help-text">歌曲在niconico的播放量成就等级。殿堂：10万播放；传说：100万播放；神话：1000万播放；破亿：1亿播放。</p>
                         </div>
 
                         <div class="form-group">
-                            <label for="brank">Bilibili荣誉等级</label>
+                            <label for="brank">bilibili荣誉等级</label>
                             <select id="brank" name="brank">
                                 <option value="">无</option>
                                 <option value="1">殿堂</option>
@@ -308,7 +351,7 @@
                                 <option value="3">神话</option>
                                 <option value="4">破亿</option>
                             </select>
-                            <p class="help-text">歌曲在Bilibili的播放量成就等级。殿堂：10万播放；传说：100万播放；神话：1000万播放；破亿：1亿播放。</p>
+                            <p class="help-text">歌曲在bilibili的播放量成就等级。殿堂：10万播放；传说：100万播放；神话：1000万播放；破亿：1亿播放。</p>
                         </div>
 
                         <div class="form-group">
@@ -322,11 +365,7 @@
                             </select>
                             <p class="help-text">歌曲在YouTube的播放量成就等级。殿堂：10万播放；传说：100万播放；神话：1000万播放；破亿：1亿播放。</p>
                         </div>
-                    </section>
 
-                    <section class="form-section">
-                        <h2><span class="section-icon">🏅</span>活动与奖项</h2>
-                        
                         <div class="form-group">
                             <label class="checkbox-label standalone">
                                 <input type="checkbox" id="participateVocaloidCollection" name="participateVocaloidCollection" onchange="toggleVocaloidCollection()">
@@ -347,12 +386,6 @@
                                 <input type="text" id="vocaloidCollectionRank" name="vocaloidCollectionRank" placeholder="如：TOP100中的第x名">
                                 <p class="help-text">在活动中获得的排名信息。</p>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="humanVersion">人声本家</label>
-                            <input type="text" id="humanVersion" name="humanVersion" placeholder="如：xx演唱">
-                            <p class="help-text">若有人声翻唱版本，填写相关信息。留空则不添加。</p>
                         </div>
                     </section>
                 </div>
@@ -404,7 +437,7 @@
                                 <input type="text" id="songLanguageOther" name="songLanguageOther" placeholder="请输入语言名称">
                             </div>
                             <div id="chineseSongHint" class="hint-box" style="display: none;">
-                                <p>由中国籍创作者制作的汉语歌曲，在Niconico或YouTube平台上的播放量达到10万。</p>
+                                <p>由中国籍创作者制作的汉语歌曲，在niconico或YouTube平台上的播放量达到10万。</p>
                             </div>
                             <p class="help-text">歌曲的主要语言。</p>
                         </div>
@@ -433,6 +466,12 @@
                                 <input type="text" id="otherNationality" name="otherNationality" placeholder="请输入国籍">
                             </div>
                             <p class="help-text">P主的所属国籍，用于生成分类。</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="humanVersion">人声本家</label>
+                            <input type="text" id="humanVersion" name="humanVersion" placeholder="如：xx演唱">
+                            <p class="help-text">若有人声翻唱版本，填写相关信息。留空则不添加。</p>
                         </div>
                     </section>
 
@@ -553,6 +592,10 @@
                     </section>
 
                     <div class="form-actions">
+                        <label class="checkbox-label standalone auto-save-toggle">
+                            <input type="checkbox" id="autoSaveEnabled" name="autoSaveEnabled">
+                            <span>每分钟自动保存</span>
+                        </label>
                         <button type="button" id="saveBtn" class="btn btn-success">暂存表单</button>
                         <button type="button" id="clearBtn" class="btn btn-danger">清空表单</button>
                     </div>
@@ -576,7 +619,7 @@
 
         <footer>
             <p>VocaScribe | VOCALOID 歌曲条目生成器 For Vocawiki</p>
-            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha 1008</p>
+            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha <span id="vocaloid-version">0x0131f51e</span></p>
         </footer>
     </div>
 

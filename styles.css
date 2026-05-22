@@ -68,9 +68,9 @@ header h1 {
 }
 
 .btn-help {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.4);
     color: white;
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.7);
     text-decoration: none;
     padding: 10px 20px;
     border-radius: 8px;
@@ -88,7 +88,7 @@ header h1 {
 }
 
 .btn-help:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.5);
     border-color: white;
 }
 
@@ -382,6 +382,15 @@ header h1 {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid var(--border-color);
+}
+
+.form-actions .auto-save-toggle {
+    padding: 12px 20px;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    box-sizing: border-box;
 }
 
 .btn {
@@ -937,6 +946,152 @@ input[type="date"]:focus {
     border-color: var(--primary-color);
 }
 
+.other-submissions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.other-submission-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px;
+    background-color: var(--section-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.2s;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.other-submission-item:hover {
+    border-color: var(--primary-color);
+}
+
+.other-submission-item.dragging {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+.other-submission-item .drag-handle {
+    cursor: grab;
+    padding: 5px 10px;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    user-select: none;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.other-submission-item .drag-handle:active {
+    cursor: grabbing;
+}
+
+.other-submission-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.other-submission-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.other-submission-item .form-group {
+    margin-bottom: 0;
+}
+
+.other-submission-item select,
+.other-submission-item input[type="text"] {
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.other-submission-item select:focus,
+.other-submission-item input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.other-submission-item .checkbox-label {
+    padding: 6px 10px;
+}
+
+.other-submission-item .checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+
+.other-submission-item .btn-remove {
+    padding: 6px 8px;
+    background-color: transparent;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    font-size: 1.2rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.other-submission-item .btn-remove:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.other-submission-item input[type="date"] {
+    padding: 6px 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+    height: auto;
+    line-height: 1.2;
+}
+
+.other-submission-item input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.unified-date-group {
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.unified-date-group input[type="date"] {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border-color);
+    flex-shrink: 0;
+    min-width: 130px;
+}
+
+.unified-date-group input[type="text"] {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+}
+
+.unified-date-group input:focus {
+    border-color: var(--border-color);
+    box-shadow: none;
+}
+
 .input-with-option {
     display: flex;
     gap: 12px;
@@ -1069,6 +1224,23 @@ input[type="date"]:focus {
     .staff-item .staff-options {
         width: 100%;
         justify-content: space-between;
+    }
+
+    .other-submission-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .other-submission-item .drag-handle {
+        align-self: flex-start;
+    }
+
+    .other-submission-item .btn-remove {
+        align-self: flex-end;
+    }
+
+    .other-submission-row {
+        flex-direction: column;
     }
 }
 

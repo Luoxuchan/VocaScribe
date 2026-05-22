@@ -1,12 +1,28 @@
+// VocaScribe 版本号
+const VOCASCRIBE_VERSION = '1010';
+
+function toggleAlbumReleaseDate() {
+    const albumName = document.getElementById('albumName').value;
+    const albumReleaseDateGroup = document.getElementById('albumReleaseDateGroup');
+    if (albumName.trim()) {
+        albumReleaseDateGroup.style.display = 'block';
+    } else {
+        albumReleaseDateGroup.style.display = 'none';
+    }
+}
+
 function saveFormData() {
     const formData = {
+        version: VOCASCRIBE_VERSION,
         timestamp: Date.now(),
+        autoSaveEnabled: document.getElementById('autoSaveEnabled')?.checked || false,
         inputs: {},
         checkboxes: {},
         selects: {},
         staffList: getStaffData(),
         mvList: getMvData(),
-        vocalistList: getVocalistData()
+        vocalistList: getVocalistData(),
+        otherSubmissionsList: getOtherSubmissionsData()
     };
 
     document.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(input => {
@@ -36,6 +52,14 @@ function restoreFormData() {
 
     try {
         const formData = JSON.parse(saved);
+        
+        // 恢复自动保存开关状态
+        if (formData.autoSaveEnabled !== undefined) {
+            const autoSaveCheckbox = document.getElementById('autoSaveEnabled');
+            if (autoSaveCheckbox) {
+                autoSaveCheckbox.checked = formData.autoSaveEnabled;
+            }
+        }
         
         Object.entries(formData.inputs).forEach(([id, value]) => {
             const element = document.getElementById(id);
@@ -117,6 +141,45 @@ function restoreFormData() {
             });
         }
 
+        if (formData.otherSubmissionsList && formData.otherSubmissionsList.length > 0) {
+            const list = document.getElementById('otherSubmissionsList');
+            list.innerHTML = '';
+            formData.otherSubmissionsList.forEach(submission => {
+                addOtherSubmissionItem();
+                const items = list.querySelectorAll('.other-submission-item');
+                const lastItem = items[items.length - 1];
+                if (lastItem) {
+                    const platformSelect = lastItem.querySelector('[data-field="platform"]');
+                    if (platformSelect) platformSelect.value = submission.platform;
+                    const idInput = lastItem.querySelector('[data-field="id"]');
+                    if (idInput) idInput.value = submission.id;
+                    const dateInput = lastItem.querySelector('[data-field="date"]');
+                    if (dateInput) dateInput.value = submission.date;
+                    const versionInput = lastItem.querySelector('[data-field="version"]');
+                    if (versionInput) versionInput.value = submission.version;
+                    const deletedCheckbox = lastItem.querySelector('[data-field="deleted"]');
+                    if (deletedCheckbox) deletedCheckbox.checked = submission.deleted;
+                    const finalViewInput = lastItem.querySelector('[data-field="final-view"]');
+                    if (finalViewInput) finalViewInput.value = submission.finalView;
+                    const finalViewGroup = lastItem.querySelector('[data-final-view-group]');
+                    if (finalViewGroup) {
+                        finalViewGroup.style.display = submission.deleted ? 'flex' : 'none';
+                    }
+                }
+            });
+        }
+
+        if (formData.checkboxes) {
+            ['nnd', 'bb', 'yt'].forEach(platform => {
+                const deleted = formData.checkboxes[platform + 'Deleted'];
+                if (deleted) {
+                    toggleDeletedFinalView(platform);
+                }
+            });
+        }
+
+        toggleAlbumReleaseDate();
+
         return true;
     } catch (e) {
         console.error('Failed to restore form data:', e);
@@ -132,6 +195,10 @@ let saveTimer = null;
 
 function startAutoSave() {
     if (saveTimer) clearInterval(saveTimer);
+    // 只在 autoSaveEnabled 为 true 时才启动自动保存
+    const autoSaveEnabled = document.getElementById('autoSaveEnabled')?.checked || false;
+    if (!autoSaveEnabled) return;
+    
     saveTimer = setInterval(() => {
         saveFormData();
         const now = new Date();
@@ -140,7 +207,29 @@ function startAutoSave() {
     }, 60000);
 }
 
+function stopAutoSave() {
+    if (saveTimer) clearInterval(saveTimer);
+    saveTimer = null;
+}
+
+function toggleAutoSave() {
+    const autoSaveEnabled = document.getElementById('autoSaveEnabled')?.checked || false;
+    if (autoSaveEnabled) {
+        startAutoSave();
+    } else {
+        stopAutoSave();
+    }
+    // 保存开关状态到本地存储
+    saveFormData();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // 动态设置页脚版本号
+    const versionElement = document.getElementById('vocaloid-version');
+    if (versionElement) {
+        versionElement.textContent = VOCASCRIBE_VERSION;
+    }
+
     const form = document.getElementById('songForm');
     const generateBtn = document.getElementById('generateBtn');
     const clearBtn = document.getElementById('clearBtn');
@@ -153,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateLyricsLineCount();
     initMvList();
     initVocalistList();
+    initOtherSubmissionsList();
     initPlatformCheckboxes();
     toggleProducerEntryName();
     toggleAlbumSongMode();
@@ -161,21 +251,56 @@ document.addEventListener('DOMContentLoaded', function() {
     const hasSavedData = localStorage.getItem('vocaScribeFormData');
     if (hasSavedData) {
         setTimeout(() => {
-            if (confirm('检测到上次未完成的表单数据，是否恢复？')) {
-                restoreFormData();
-                toggleAlbumSongMode();
-                toggleAlbumSongBilibiliMode();
-                showToast('表单数据已恢复');
+            let savedData;
+            try {
+                savedData = JSON.parse(hasSavedData);
+            } catch (e) {
+                savedData = null;
+            }
+            
+            // 先检查版本号是否匹配
+            const savedVersion = savedData ? savedData.version : null;
+            if (savedVersion === VOCASCRIBE_VERSION) {
+                // 版本相同，先恢复自动保存开关状态
+                if (savedData && savedData.autoSaveEnabled !== undefined) {
+                    const autoSaveCheckbox = document.getElementById('autoSaveEnabled');
+                    if (autoSaveCheckbox) {
+                        autoSaveCheckbox.checked = savedData.autoSaveEnabled;
+                    }
+                }
+                // 正常询问是否恢复表单
+                if (confirm('检测到上次未完成的表单数据，是否恢复？')) {
+                    restoreFormData();
+                    toggleAlbumSongMode();
+                    toggleAlbumSongBilibiliMode();
+                    showToast('表单数据已恢复');
+                } else {
+                    clearSavedFormData();
+                }
             } else {
+                // 版本不同，提示更新并清除历史数据
+                alert('VocaScribe 已更新！\n\n自动保存开关已默认关闭。\nTips: 即使不进行每分钟自动保存，在生成 WikiText 时也会自动保存。');
                 clearSavedFormData();
             }
         }, 500);
     }
 
+    // 绑定自动保存开关事件
+    const autoSaveCheckbox = document.getElementById('autoSaveEnabled');
+    if (autoSaveCheckbox) {
+        autoSaveCheckbox.addEventListener('change', toggleAutoSave);
+    }
+    
     startAutoSave();
 
-    generateBtn.addEventListener('click', generateWikiText);
+    generateBtn.addEventListener('click', function() {
+        // 强制保存一次表单
+        saveFormData();
+        generateWikiText();
+    });
     copyOutputBtn.addEventListener('click', function() {
+        // 强制保存一次表单
+        saveFormData();
         copyToClipboard(output.value);
     });
     clearBtn.addEventListener('click', clearForm);
@@ -623,6 +748,182 @@ function getMvData() {
     return mvData;
 }
 
+function toggleDeletedFinalView(platform) {
+    const deleted = document.getElementById(platform + 'Deleted');
+    const finalViewGroup = document.getElementById(platform + 'FinalViewGroup');
+    if (deleted && finalViewGroup) {
+        finalViewGroup.style.display = deleted.checked ? 'block' : 'none';
+    }
+}
+
+function initOtherSubmissionsList() {
+    const list = document.getElementById('otherSubmissionsList');
+    if (list) {
+        list.innerHTML = '';
+    }
+}
+
+function addOtherSubmissionItem() {
+    const list = document.getElementById('otherSubmissionsList');
+    const itemId = otherSubmissionItemId++;
+
+    const submissionItem = document.createElement('div');
+    submissionItem.className = 'other-submission-item';
+    submissionItem.draggable = true;
+    submissionItem.dataset.itemId = itemId;
+
+    submissionItem.innerHTML = `
+        <span class="drag-handle">☰</span>
+        <div class="other-submission-content">
+            <div class="other-submission-row">
+                <div class="form-group" style="flex: 1;">
+                    <select class="other-submission-platform" data-field="platform">
+                                <option value="nnd">niconico</option>
+                                <option value="yt">YouTube</option>
+                                <option value="bb">bilibili</option>
+                                <option value="ac">AcFun</option>
+                                <option value="wyy">网易云音乐</option>
+                            </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <input type="text" class="other-submission-id" data-field="id" placeholder="稿件ID">
+                </div>
+            </div>
+            <div class="other-submission-row">
+                <div class="form-group" style="flex: 1;">
+                    <input type="text" class="other-submission-version" data-field="version" placeholder="版本名称">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="checkbox-label standalone">
+                        <input type="checkbox" class="other-submission-deleted" data-field="deleted" onchange="toggleOtherSubmissionFinalView(this)">
+                        <span>已删稿</span>
+                    </label>
+                </div>
+                <div class="form-group other-submission-final-view-group" data-final-view-group style="display: none; flex: 1;">
+                    <input type="text" class="other-submission-final-view" data-field="final-view" placeholder="最终播放数">
+                </div>
+            </div>
+            <div class="other-submission-row">
+                <div class="form-group" style="flex: 1;">
+                    <div class="date-input-group unified-date-group">
+                        <input type="date" class="other-submission-date-picker" data-field="date-picker" lang="zh-CN">
+                        <input type="text" class="other-submission-date" data-field="date" placeholder="20070831">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn-remove" onclick="removeOtherSubmissionItem(${itemId})">×</button>
+    `;
+
+    list.appendChild(submissionItem);
+
+    const datePicker = submissionItem.querySelector('.other-submission-date-picker');
+    const dateInput = submissionItem.querySelector('.other-submission-date');
+    if (datePicker && dateInput) {
+        datePicker.addEventListener('change', function() {
+            if (this.value) {
+                const date = new Date(this.value);
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                dateInput.value = `${year}年${month}月${day}日`;
+            }
+        });
+        dateInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            if (/^\d{8}$/.test(value)) {
+                const year = value.substring(0, 4);
+                const month = value.substring(4, 6);
+                const day = value.substring(6, 8);
+                this.value = `${year}年${parseInt(month)}月${parseInt(day)}日`;
+            }
+        });
+    }
+
+    submissionItem.addEventListener('dragstart', handleOtherSubmissionDragStart);
+    submissionItem.addEventListener('dragend', handleOtherSubmissionDragEnd);
+    submissionItem.addEventListener('dragover', handleOtherSubmissionDragOver);
+    submissionItem.addEventListener('drop', handleOtherSubmissionDrop);
+}
+
+function toggleOtherSubmissionFinalView(checkbox) {
+    const item = checkbox.closest('.other-submission-item');
+    if (item) {
+        const finalViewGroup = item.querySelector('[data-final-view-group]');
+        if (finalViewGroup) {
+            finalViewGroup.style.display = checkbox.checked ? 'flex' : 'none';
+        }
+    }
+}
+
+function removeOtherSubmissionItem(itemId) {
+    const item = document.querySelector(`.other-submission-item[data-item-id="${itemId}"]`);
+    if (item) {
+        item.remove();
+    }
+}
+
+function handleOtherSubmissionDragStart(e) {
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', this.dataset.itemId);
+}
+
+function handleOtherSubmissionDragEnd(e) {
+    this.classList.remove('dragging');
+}
+
+function handleOtherSubmissionDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleOtherSubmissionDrop(e) {
+    e.preventDefault();
+    const draggingId = e.dataTransfer.getData('text/plain');
+    const draggingItem = document.querySelector(`.other-submission-item[data-item-id="${draggingId}"]`);
+
+    if (draggingItem && this !== draggingItem) {
+        const list = document.getElementById('otherSubmissionsList');
+        const items = [...list.querySelectorAll('.other-submission-item')];
+        const draggingIndex = items.indexOf(draggingItem);
+        const targetIndex = items.indexOf(this);
+
+        if (draggingIndex < targetIndex) {
+            this.parentNode.insertBefore(draggingItem, this.nextSibling);
+        } else {
+            this.parentNode.insertBefore(draggingItem, this);
+        }
+    }
+}
+
+function getOtherSubmissionsData() {
+    const items = document.querySelectorAll('.other-submission-item');
+    const submissions = [];
+    items.forEach(item => {
+        const platform = item.querySelector('[data-field="platform"]')?.value || '';
+        const id = item.querySelector('[data-field="id"]')?.value || '';
+        const date = item.querySelector('[data-field="date"]')?.value || '';
+        const version = item.querySelector('[data-field="version"]')?.value || '';
+        const deleted = item.querySelector('[data-field="deleted"]')?.checked || false;
+        const finalView = item.querySelector('[data-field="final-view"]')?.value || '';
+        
+        if (id || date) {
+            submissions.push({
+                platform,
+                id,
+                date,
+                version,
+                deleted,
+                finalView
+            });
+        }
+    });
+    return submissions;
+}
+
+let otherSubmissionItemId = 0;
+
 let staffItemId = 0;
 const defaultStaffRoles = ['作词', '作曲', '编曲', '曲绘'];
 
@@ -747,6 +1048,13 @@ function getStaffData() {
     });
     
     return staffData;
+}
+
+function formatNumberWithCommas(num) {
+    if (!num) return '';
+    const n = num.toString().replace(/[^\d]/g, '');
+    if (!n) return num;
+    return parseInt(n).toLocaleString();
 }
 
 function initDatePickers() {
@@ -905,11 +1213,18 @@ function generateWikiText() {
     const hasYouTube = getCheckboxValue('hasYouTube');
     const nndId = getFormValue('nndId');
     const nndDate = getFormValue('nndDate');
+    const nndDeleted = getCheckboxValue('nndDeleted');
+    const nndFinalView = getFormValue('nndFinalView');
     const bbId = getFormValue('bbId');
     const bbDate = getFormValue('bbDate');
+    const bbDeleted = getCheckboxValue('bbDeleted');
+    const bbFinalView = getFormValue('bbFinalView');
     const ytId = getFormValue('ytId');
     const ytDate = getFormValue('ytDate');
+    const ytDeleted = getCheckboxValue('ytDeleted');
+    const ytFinalView = getFormValue('ytFinalView');
     const mvId = getFormValue('mvId');
+    const otherSubmissions = getOtherSubmissionsData();
 
     const nrank = getFormValue('nrank');
     const brank = getFormValue('brank');
@@ -1057,6 +1372,8 @@ function generateWikiText() {
     }
     wikiText += `|P主 = ${producerLink}\n`;
 
+    const postCards = [];
+
     const postDatesList = [];
     if (hasNiconico && nndId && nndDate) {
         postDatesList.push(nndDate);
@@ -1087,25 +1404,77 @@ function generateWikiText() {
         wikiText += `|投稿时间 = ${unifiedPostTime}\n`;
     }
 
-    if (hasNiconico && nndId) {
+    if (hasNiconico && nndId && !nndDeleted) {
         wikiText += `|nnd_id = ${nndId}\n`;
     }
-    if (hasNiconico && nndDate && !useUnifiedPostTime) {
+    if (hasNiconico && nndDate && !useUnifiedPostTime && !nndDeleted) {
         wikiText += `|nnd_date = ${nndDate}\n`;
     }
 
-    if (hasBilibili && bbId) {
+    if (hasBilibili && bbId && !bbDeleted) {
         wikiText += `|bb_id = ${bbId}\n`;
     }
-    if (hasBilibili && bbDate && !useUnifiedPostTime) {
+    if (hasBilibili && bbDate && !useUnifiedPostTime && !bbDeleted) {
         wikiText += `|bb_date = ${bbDate}\n`;
     }
 
-    if (hasYouTube && ytId) {
+    if (hasYouTube && ytId && !ytDeleted) {
         wikiText += `|yt_id = ${ytId}\n`;
     }
-    if (hasYouTube && ytDate && !useUnifiedPostTime) {
+    if (hasYouTube && ytDate && !useUnifiedPostTime && !ytDeleted) {
         wikiText += `|yt_date = ${ytDate}\n`;
+    }
+
+    if (hasNiconico && nndId && nndDeleted) {
+        let card = `{{VOCALOID Songbox/card|nnd|${nndId}|${nndDate}`;
+        if (nndFinalView) {
+            card += `|再生=${formatNumberWithCommas(nndFinalView)}|class=deleted`;
+        } else {
+            card += `|class=deleted`;
+        }
+        card += `}}`;
+        postCards.push(card);
+    }
+
+    if (hasBilibili && bbId && bbDeleted) {
+        let card = `{{VOCALOID Songbox/card|bb|${bbId}|${bbDate}`;
+        if (bbFinalView) {
+            card += `|再生=${formatNumberWithCommas(bbFinalView)}|class=deleted`;
+        } else {
+            card += `|class=deleted`;
+        }
+        card += `}}`;
+        postCards.push(card);
+    }
+
+    if (hasYouTube && ytId && ytDeleted) {
+        let card = `{{VOCALOID Songbox/card|yt|${ytId}|${ytDate}`;
+        if (ytFinalView) {
+            card += `|再生=${formatNumberWithCommas(ytFinalView)}|class=deleted`;
+        } else {
+            card += `|class=deleted`;
+        }
+        card += `}}`;
+        postCards.push(card);
+    }
+
+    otherSubmissions.forEach(submission => {
+        let card = `{{VOCALOID Songbox/card|${submission.platform}|${submission.id}|${submission.date}`;
+        if (submission.version) {
+            card += `|${submission.version}`;
+        }
+        if (submission.finalView) {
+            card += `|再生=${formatNumberWithCommas(submission.finalView)}`;
+        }
+        if (submission.deleted) {
+            card += `|class=deleted`;
+        }
+        card += `}}`;
+        postCards.push(card);
+    });
+
+    if (postCards.length > 0) {
+        wikiText += `|投稿 = ${postCards.join('')}\n`;
     }
 
     wikiText += `}}\n`;
@@ -1152,38 +1521,41 @@ function generateWikiText() {
         const albumDisplay = applyLjTemplate(albumName, albumNameLj);
         wikiText += `是${producerDisplayLink}于${albumReleaseDate}发售的${engineDisplay}专辑《'''${albumDisplay}'''》的收录曲目，由${vocalistNamesSimple}演唱。\n`;
     } else {
-        // 非专辑曲模式：保持原逻辑不变
-        wikiText += `是${producerDisplayLink}于`;
+            // 非专辑曲模式
+            wikiText += `是${producerDisplayLink}`;
 
-        const postDates = [];
-        const postSites = [];
-        
-        if (hasNiconico && nndId) {
-            postDates.push({ date: nndDate, site: 'niconico' });
-            postSites.push('niconico');
-        }
-        if (hasYouTube && ytId) {
-            postDates.push({ date: ytDate, site: 'YouTube' });
-            postSites.push('YouTube');
-        }
-        if (hasBilibili && bbId) {
-            postDates.push({ date: bbDate, site: 'bilibili' });
-            postSites.push('bilibili');
-        }
-
-        if (postDates.length > 0) {
-            if (useUnifiedPostTime) {
-                wikiText += `${unifiedPostTime}投稿至[[${postSites.join(']]、[[')}]]的`;
-            } else {
-                for (let i = 0; i < postDates.length; i++) {
-                    if (i > 0) wikiText += '、';
-                    wikiText += `${postDates[i].date}投稿至[[${postDates[i].site}]]`;
-                }
-                wikiText += '的';
+            const postDates = [];
+            const postSites = [];
+            
+            if (hasNiconico && nndId) {
+                postDates.push({ date: nndDate, site: 'niconico' });
+                postSites.push('niconico');
             }
-        }
+            if (hasYouTube && ytId) {
+                postDates.push({ date: ytDate, site: 'YouTube' });
+                postSites.push('YouTube');
+            }
+            if (hasBilibili && bbId) {
+                postDates.push({ date: bbDate, site: 'bilibili' });
+                postSites.push('bilibili');
+            }
 
-        wikiText += `${engineDisplay}${songLanguage}${songType}歌曲，由${vocalistNamesSimple}演唱`;
+            if (postDates.length > 0) {
+                wikiText += `于`;
+                if (useUnifiedPostTime) {
+                    wikiText += `${unifiedPostTime}投稿至[[${postSites.join(']]、[[')}]]的`;
+                } else {
+                    for (let i = 0; i < postDates.length; i++) {
+                        if (i > 0) wikiText += '、';
+                        wikiText += `${postDates[i].date}投稿至[[${postDates[i].site}]]`;
+                    }
+                    wikiText += '的';
+                }
+            } else {
+                wikiText += `投稿的`;
+            }
+
+            wikiText += `${engineDisplay}${songLanguage}${songType}歌曲，由${vocalistNamesSimple}演唱`;
 
         if (albumName) {
             const albumDisplay = applyLjTemplate(albumName, albumNameLj);
@@ -1518,6 +1890,8 @@ function clearForm() {
         initStaffList();
         initMvList();
         initVocalistList();
+        initOtherSubmissionsList();
+        toggleAlbumReleaseDate();
         
         document.getElementById('generateBtn').textContent = '生成WikiText';
         document.getElementById('generationHint').style.display = 'none';
