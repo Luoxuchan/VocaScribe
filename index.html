@@ -59,7 +59,7 @@
                                     <span>套用{{lj}}模板</span>
                                 </label>
                             </div>
-                            <div id="producerEntryNameGroup" style="display: none; margin-top: 10px;">
+                            <div id="producerEntryNameGroup" style="display: none; margin-top: 8px;">
                                 <label for="producerEntryName">P主条目名</label>
                                 <input type="text" id="producerEntryName" name="producerEntryName" placeholder="如：Satsuki（当P主名与条目名不同时填写）">
                                 <p class="help-text">当P主名称与Wiki条目名不同时填写，将生成[[条目名|{{lj|P主名}}]]格式。</p>
@@ -168,7 +168,7 @@
                                 <input type="text" id="music163Link" name="music163Link" placeholder="https://music.163.com/song?id=……">
                                 <p class="help-text">在这里填写该曲的网易云音乐分享链接</p>
                             </div>
-                            <div class="form-group" style="margin-top: 15px;">
+                            <div class="form-group" style="margin-top: 10px;">
                                 <label class="checkbox-label standalone">
                                     <input type="checkbox" id="music163NotFound" name="music163NotFound" onchange="toggleAlbumSongBilibiliMode()">
                                     <span>网易云没有这首歌</span>
@@ -279,19 +279,20 @@
                         </div>
                         </div>
 
+                        <div id="otherSubmissionsList" class="other-submissions-list">
+                        </div>
+
                         <div class="form-group" style="margin-top: 10px;">
                             <button type="button" class="btn btn-small btn-outline" onclick="addOtherSubmissionItem()">
                                 + 添加其它稿件
                             </button>
-                            <p class="help-text">添加来自其他平台或不同版本的投稿。</p>
+                            <p class="help-text">添加来自其它平台或不同版本的投稿。</p>
                         </div>
 
-                        <div id="otherSubmissionsList" class="other-submissions-list">
-                        </div>
 
                         <div id="mvGroup" class="form-group">
                             <label>歌曲MV（bilibili）</label>
-                            <p class="help-text">添加歌曲的bilibili视频。原曲始终在第一位，可添加其他版本。勾选bilibili投稿后，原曲BV号将自动同步。</p>
+                            <p class="help-text">添加歌曲的bilibili视频。原曲始终在第一位，可添加其它版本。勾选bilibili投稿后，原曲BV号将自动同步。</p>
                             
                             <div class="mv-list" id="mvList">
                                 <div class="mv-item mv-item-original">
@@ -301,7 +302,7 @@
                             </div>
                             
                             <button type="button" class="btn btn-small btn-outline" onclick="addMvVersionItem()" style="margin-top: 10px;">
-                                + 添加其他版本
+                                + 添加其它版本
                             </button>
                         </div>
 
@@ -324,6 +325,16 @@
                                 <input type="text" id="albumReleaseDate" name="albumReleaseDate" placeholder="如：20070831 或 2007年8月31日">
                             </div>
                             <p class="help-text">专辑的发行日期。格式为YYYY年mm月dd日。支持八位数字格式（如20070831）或直接选择日期。专辑曲必填。</p>
+                        </div>
+
+                        <div id="otherAlbumsList" class="other-submissions-list" style="display:none;">
+                        </div>
+
+                        <div class="form-group" id="addOtherAlbumGroup" style="display:none; margin-top: 10px;">
+                            <button type="button" class="btn btn-small btn-outline" onclick="addOtherAlbumItem()">
+                                + 添加其它专辑
+                            </button>
+                            <p class="help-text">添加歌曲被收录的其它专辑。</p>
                         </div>
                     </section>
 
@@ -431,9 +442,9 @@
                                 <option value="汉语">汉语</option>
                                 <option value="英语">英语</option>
                                 <option value="韩语">韩语</option>
-                                <option value="其他">其他</option>
+                                <option value="其它">其它</option>
                             </select>
-                            <div id="songLanguageOtherGroup" style="display: none; margin-top: 10px;">
+                            <div id="songLanguageOtherGroup" style="display: none; margin-top: 8px;">
                                 <input type="text" id="songLanguageOther" name="songLanguageOther" placeholder="请输入语言名称">
                             </div>
                             <div id="chineseSongHint" class="hint-box" style="display: none;">
@@ -447,9 +458,9 @@
                             <select id="songType" name="songType" onchange="toggleSongTypeOther()">
                                 <option value="原创">原创</option>
                                 <option value="翻唱">翻唱</option>
-                                <option value="其他">其他</option>
+                                <option value="其它">其它</option>
                             </select>
-                            <div id="songTypeOtherGroup" style="display: none; margin-top: 10px;">
+                            <div id="songTypeOtherGroup" style="display: none; margin-top: 8px;">
                                 <input type="text" id="songTypeOther" name="songTypeOther" placeholder="请输入歌曲类型">
                             </div>
                             <p class="help-text">歌曲的类型分类。选择翻唱将自动添加翻唱歌曲分类。</p>
@@ -460,9 +471,9 @@
                             <select id="producerNationality" name="producerNationality" onchange="toggleOtherNationality()">
                                 <option value="日本">日本</option>
                                 <option value="中国">中国</option>
-                                <option value="其他">其他</option>
+                                <option value="其它">其它</option>
                             </select>
-                            <div id="otherNationalityGroup" style="display: none; margin-top: 10px;">
+                            <div id="otherNationalityGroup" style="display: none; margin-top: 8px;">
                                 <input type="text" id="otherNationality" name="otherNationality" placeholder="请输入国籍">
                             </div>
                             <p class="help-text">P主的所属国籍，用于生成分类。</p>
@@ -540,19 +551,19 @@
                                 <span id="originalLineCount" class="line-count"></span>
                             </label>
                             <textarea id="lyricsOriginal" name="lyricsOriginal" rows="6" placeholder="请粘贴歌词原文..." oninput="updateLyricsLineCount()"></textarea>
-                            <div style="margin-top: 10px;">
+                            <div style="margin-top: 8px;">
                                 <label class="checkbox-label" id="furiganaLabel" style="margin-left: 20px;">
                                     <input type="checkbox" id="useFurigana" name="useFurigana">
                                     <span>振假名</span>
                                 </label>
                             </div>
-                            <div style="margin-top: 10px;">
+                            <div style="margin-top: 8px;">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="lyricsNotJapanese" name="lyricsNotJapanese" onchange="toggleLyricsLanguage()">
                                     <span>原文不是日文</span>
                                 </label>
                             </div>
-                            <div id="lyricsLanguageGroup" style="display: none; margin-top: 10px;">
+                            <div id="lyricsLanguageGroup" style="display: none; margin-top: 8px;">
                                 <label for="lyricsLanguageTag">原文语言标签</label>
                                 <input type="text" id="lyricsLanguageTag" name="lyricsLanguageTag" placeholder="如：en、zh-Hans、ko">
                                 <p class="help-text">填写原文的语言标签，作为LyricsKai模板的llang参数。详见<a href="https://voca.wiki/Help:%E8%AF%AD%E8%A8%80%E6%A0%87%E7%AD%BE" target="_blank">Help:语言标签</a>。</p>
@@ -576,18 +587,18 @@
                     </section>
 
                     <section class="form-section">
-                        <h2><span class="section-icon">🏷️</span>其他分类</h2>
+                        <h2><span class="section-icon">🏷️</span>其它分类</h2>
                         
                         <div class="form-group">
-                            <label for="additionalTemplates">其他模板</label>
+                            <label for="additionalTemplates">其它模板</label>
                             <textarea id="additionalTemplates" name="additionalTemplates" rows="3" placeholder="每行一个模板名&#10;如：&#10;The VOCALOID Collection2024春&#10;世界计划 彩色舞台 feat. 初音未来"></textarea>
-                            <p class="help-text">其他需要添加的导航模板，每行一个模板名称。</p>
+                            <p class="help-text">其它需要添加的导航模板，每行一个模板名称。</p>
                         </div>
 
                         <div class="form-group">
-                            <label for="additionalCategories">其他分类</label>
+                            <label for="additionalCategories">其它分类</label>
                             <textarea id="additionalCategories" name="additionalCategories" rows="3" placeholder="每行一个分类名"></textarea>
-                            <p class="help-text">其他需要添加的分类，每行一个分类名称。</p>
+                            <p class="help-text">其它需要添加的分类，每行一个分类名称。</p>
                         </div>
                     </section>
 
@@ -619,7 +630,7 @@
 
         <footer>
             <p>VocaScribe | VOCALOID 歌曲条目生成器 For Vocawiki</p>
-            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha <span id="vocaloid-version">0x0131f51e</span></p>
+            <p class="footer-note">生成后请先预览再提交。| 作者：珞珝 | Alpha <span id="vocaloid-version">0x5c30</span></p>
         </footer>
     </div>
 

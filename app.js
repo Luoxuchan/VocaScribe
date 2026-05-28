@@ -1,13 +1,119 @@
 // VocaScribe 版本号
-const VOCASCRIBE_VERSION = '1010';
+const VOCASCRIBE_VERSION = '1011';
 
 function toggleAlbumReleaseDate() {
     const albumName = document.getElementById('albumName').value;
     const albumReleaseDateGroup = document.getElementById('albumReleaseDateGroup');
+    const otherAlbumsList = document.getElementById('otherAlbumsList');
+    const addOtherAlbumGroup = document.getElementById('addOtherAlbumGroup');
+    
     if (albumName.trim()) {
         albumReleaseDateGroup.style.display = 'block';
+        otherAlbumsList.style.display = 'block';
+        addOtherAlbumGroup.style.display = 'block';
     } else {
         albumReleaseDateGroup.style.display = 'none';
+        otherAlbumsList.style.display = 'none';
+        addOtherAlbumGroup.style.display = 'none';
+    }
+}
+
+let otherAlbumItemId = 0;
+
+function addOtherAlbumItem() {
+    const list = document.getElementById('otherAlbumsList');
+    const itemId = otherAlbumItemId++;
+    
+    const item = document.createElement('div');
+    item.className = 'other-submission-item';
+    item.draggable = true;
+    item.dataset.itemId = itemId;
+    
+    item.innerHTML = `
+        <span class="drag-handle">☰</span>
+        <div class="other-submission-content">
+            <div class="other-submission-row">
+                <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                    <input type="text" placeholder="专辑名" data-field="albumName">
+                </div>
+                <label class="checkbox-label" style="margin-left: 10px;">
+                    <input type="checkbox" data-field="albumLj">
+                    <span>套用{{lj}}模板</span>
+                </label>
+            </div>
+        </div>
+        <button type="button" class="btn-remove" onclick="removeOtherAlbumItem(${itemId})">×</button>
+    `;
+    
+    list.appendChild(item);
+    
+    item.addEventListener('dragstart', handleDragStart);
+    item.addEventListener('dragend', handleDragEnd);
+    item.addEventListener('dragover', handleAlbumDragOver);
+    item.addEventListener('drop', handleAlbumDrop);
+}
+
+function removeOtherAlbumItem(itemId) {
+    const item = document.querySelector(`.other-submission-item[data-item-id="${itemId}"]`);
+    if (item) {
+        item.remove();
+    }
+}
+
+function handleAlbumDragOver(e) {
+    e.preventDefault();
+}
+
+function handleAlbumDrop(e) {
+    e.preventDefault();
+    const draggingId = e.dataTransfer.getData('text/plain');
+    const draggingItem = document.querySelector(`.other-submission-item[data-item-id="${draggingId}"]`);
+    
+    if (draggingItem && this !== draggingItem) {
+        const list = document.getElementById('otherAlbumsList');
+        const items = [...list.querySelectorAll('.other-submission-item')];
+        const draggingIndex = items.indexOf(draggingItem);
+        const targetIndex = items.indexOf(this);
+        
+        if (draggingIndex < targetIndex) {
+            this.parentNode.insertBefore(draggingItem, this.nextSibling);
+        } else {
+            this.parentNode.insertBefore(draggingItem, this);
+        }
+    }
+}
+
+function getOtherAlbumsData() {
+    const items = document.querySelectorAll('#otherAlbumsList .other-submission-item');
+    const albums = [];
+    items.forEach(item => {
+        const name = item.querySelector('[data-field="albumName"]')?.value || '';
+        const lj = item.querySelector('[data-field="albumLj"]')?.checked || false;
+        
+        if (name) {
+            albums.push({ name, lj });
+        }
+    });
+    return albums;
+}
+
+function formatAlbumList(albums, includePrimary = true) {
+    if (!albums || albums.length === 0) {
+        return '';
+    }
+    
+    const formattedAlbums = albums.map(album => {
+        const nameDisplay = applyLjTemplate(album.name, album.lj);
+        return `《'''${nameDisplay}'''》`;
+    });
+    
+    if (formattedAlbums.length === 1) {
+        return formattedAlbums[0];
+    } else if (formattedAlbums.length === 2) {
+        return `${formattedAlbums[0]}和${formattedAlbums[1]}`;
+    } else {
+        const lastAlbum = formattedAlbums.pop();
+        return `${formattedAlbums.join('、')}和${lastAlbum}`;
     }
 }
 
@@ -22,7 +128,8 @@ function saveFormData() {
         staffList: getStaffData(),
         mvList: getMvData(),
         vocalistList: getVocalistData(),
-        otherSubmissionsList: getOtherSubmissionsData()
+        otherSubmissionsList: getOtherSubmissionsData(),
+        otherAlbumsList: getOtherAlbumsData()
     };
 
     document.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(input => {
@@ -165,6 +272,22 @@ function restoreFormData() {
                     if (finalViewGroup) {
                         finalViewGroup.style.display = submission.deleted ? 'flex' : 'none';
                     }
+                }
+            });
+        }
+
+        if (formData.otherAlbumsList && formData.otherAlbumsList.length > 0) {
+            const list = document.getElementById('otherAlbumsList');
+            list.innerHTML = '';
+            formData.otherAlbumsList.forEach(album => {
+                addOtherAlbumItem();
+                const items = list.querySelectorAll('.other-submission-item');
+                const lastItem = items[items.length - 1];
+                if (lastItem) {
+                    const nameInput = lastItem.querySelector('[data-field="albumName"]');
+                    if (nameInput) nameInput.value = album.name;
+                    const ljCheckbox = lastItem.querySelector('[data-field="albumLj"]');
+                    if (ljCheckbox) ljCheckbox.checked = album.lj;
                 }
             });
         }
@@ -674,7 +797,7 @@ function addMvVersionItem() {
     
     mvItem.innerHTML = `
         <span class="drag-handle">☰</span>
-        <input type="text" class="mv-version" placeholder="版本名称（如：本家Remix）" data-field="mvVersion">
+        <input type="text" class="mv-version" placeholder="版本名（如：本家Remix）" data-field="mvVersion">
         <input type="text" class="mv-id" placeholder="BV号" data-field="mvId">
         <button type="button" class="btn-remove" onclick="removeMvItem(${itemId})">×</button>
     `;
@@ -791,7 +914,7 @@ function addOtherSubmissionItem() {
             </div>
             <div class="other-submission-row">
                 <div class="form-group" style="flex: 1;">
-                    <input type="text" class="other-submission-version" data-field="version" placeholder="版本名称">
+                    <input type="text" class="other-submission-version" data-field="version" placeholder="版本（可选）">
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label class="checkbox-label standalone">
@@ -1225,6 +1348,7 @@ function generateWikiText() {
     const ytFinalView = getFormValue('ytFinalView');
     const mvId = getFormValue('mvId');
     const otherSubmissions = getOtherSubmissionsData();
+    const otherAlbums = getOtherAlbumsData();
 
     const nrank = getFormValue('nrank');
     const brank = getFormValue('brank');
@@ -1477,6 +1601,16 @@ function generateWikiText() {
         wikiText += `|投稿 = ${postCards.join('')}\n`;
     }
 
+    if (albumName) {
+        let allAlbums = [{ name: albumName, lj: albumNameLj }];
+        if (otherAlbums && otherAlbums.length > 0) {
+            allAlbums = allAlbums.concat(otherAlbums);
+        }
+        
+        const albumParam = formatAlbumList(allAlbums);
+        wikiText += `|收录专辑 = ${albumParam}\n`;
+    }
+
     wikiText += `}}\n`;
 
     if (postTextOriginal || postTextTranslated) {
@@ -1519,7 +1653,13 @@ function generateWikiText() {
     if (isAlbumSong) {
         // 专辑曲模式：《'''歌名'''》是[[P主]]于发行日期发售的专辑《'''专辑名'''》的收录曲目，由[[歌姬]]演唱。
         const albumDisplay = applyLjTemplate(albumName, albumNameLj);
-        wikiText += `是${producerDisplayLink}于${albumReleaseDate}发售的${engineDisplay}专辑《'''${albumDisplay}'''》的收录曲目，由${vocalistNamesSimple}演唱。\n`;
+        wikiText += `是${producerDisplayLink}于${albumReleaseDate}发售的${engineDisplay}专辑《'''${albumDisplay}'''》的收录曲目，由${vocalistNamesSimple}演唱。`;
+        
+        if (otherAlbums && otherAlbums.length > 0) {
+            const otherAlbumsText = formatAlbumList(otherAlbums);
+            wikiText += `也被收录于专辑${otherAlbumsText}中。`;
+        }
+        wikiText += '\n';
     } else {
             // 非专辑曲模式
             wikiText += `是${producerDisplayLink}`;
@@ -1558,8 +1698,12 @@ function generateWikiText() {
             wikiText += `${engineDisplay}${songLanguage}${songType}歌曲，由${vocalistNamesSimple}演唱`;
 
         if (albumName) {
-            const albumDisplay = applyLjTemplate(albumName, albumNameLj);
-            wikiText += `，并被收录于专辑《'''${albumDisplay}'''》中`;
+            let allAlbums = [{ name: albumName, lj: albumNameLj }];
+            if (otherAlbums && otherAlbums.length > 0) {
+                allAlbums = allAlbums.concat(otherAlbums);
+            }
+            const albumText = formatAlbumList(allAlbums);
+            wikiText += `，并被收录于${albumText}中`;
         }
         wikiText += `。\n`;
     }
@@ -1773,6 +1917,10 @@ function generateWikiText() {
         wikiText += `[[Category:翻唱歌曲]]\n`;
     }
 
+    if (isAlbumSong) {
+        wikiText += `[[Category:专辑歌曲]]\n`;
+    }
+
     if (additionalCategories) {
         const categories = additionalCategories.split('\n').filter(c => c.trim());
         for (const category of categories) {
@@ -1828,7 +1976,7 @@ function clearForm() {
         });
         
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.checked = false;
+            checkbox.checked = checkbox.hasAttribute('checked');
         });
         
         document.querySelectorAll('input[type="radio"]').forEach(radio => {

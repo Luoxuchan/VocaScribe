@@ -118,7 +118,7 @@ header h1 {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
-    padding: 10px 0;
+    padding: 8px 0;
 }
 
 .checkbox-group .checkbox-label {
@@ -139,7 +139,7 @@ header h1 {
 }
 
 .platform-inputs {
-    margin-top: 15px;
+    margin-top: 12px;
     padding: 15px;
     background-color: var(--section-bg);
     border-radius: 8px;
@@ -147,7 +147,7 @@ header h1 {
 }
 
 .platform-input-group {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .platform-input-group:last-child {
@@ -217,7 +217,7 @@ header h1 {
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .form-group:last-child {
@@ -359,13 +359,14 @@ header h1 {
 .help-text {
     font-size: 0.85rem;
     color: var(--help-text-color);
-    margin-top: 6px;
+    margin-top: 4px;
+    margin-bottom: 0;
     line-height: 1.5;
 }
 
 .sub-options {
-    margin-top: 15px;
-    padding: 15px;
+    margin-top: 12px;
+    padding: 12px;
     background-color: var(--section-bg);
     border-radius: 8px;
     border-left: 3px solid var(--primary-color);
