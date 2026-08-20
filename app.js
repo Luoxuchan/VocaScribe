@@ -1,5 +1,5 @@
 // VocaScribe 版本号
-const VOCASCRIBE_VERSION = '1011';
+const VOCASCRIBE_VERSION = '1012';
 
 function toggleAlbumReleaseDate() {
     const albumName = document.getElementById('albumName').value;
@@ -1321,7 +1321,6 @@ function generateWikiText() {
     const producerEntryName = getFormValue('producerEntryName');
     const vocalistData = getVocalistData();
     const producerTemplate = getFormValue('producerTemplate');
-    const useNewSongbox = getCheckboxValue('useNewSongbox');
 
     const imageName = getFormValue('imageName');
     const customColor = getFormValue('customColor');
@@ -1446,8 +1445,7 @@ function generateWikiText() {
         wikiText += `{{虚拟歌手歌曲荣誉题头|${engineParam}${rankParams}}}\n`;
     }
 
-    const songboxTemplate = useNewSongbox ? 'VOCALOID_Songbox/new' : 'VOCALOID_Songbox';
-    wikiText += `{{${songboxTemplate}\n`;
+    wikiText += `{{VOCALOID_Songbox\n`;
     
     if (imageName) {
         wikiText += `|image = ${imageName}\n`;
@@ -1893,6 +1891,10 @@ function generateWikiText() {
         for (const template of templates) {
             wikiText += `{{${template.trim()}}}\n`;
         }
+    }
+
+    if (vocaloidCollectionSeason) {
+        wikiText += `{{The VOCALOID Collection${vocaloidCollectionSeason}}}\n`;
     }
 
     const finalNationality = producerNationality === '其他' ? otherNationality : producerNationality;
