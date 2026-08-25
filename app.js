@@ -1,5 +1,5 @@
 // VocaScribe 版本号
-const VOCASCRIBE_VERSION = '1012';
+const VOCASCRIBE_VERSION = '1013';
 
 function toggleAlbumReleaseDate() {
     const albumName = document.getElementById('albumName').value;
@@ -1707,7 +1707,7 @@ function generateWikiText() {
     }
 
     if (participateVocaloidCollection && vocaloidCollectionSeason) {
-        wikiText += `\n本曲参与了[[The VOCALOID Collection]](${applyLjTemplate(vocaloidCollectionSeason, true)})活动`;
+        wikiText += `\n本曲参与了[[The VOCALOID Collection|${applyLjTemplate('ボカコレ' + vocaloidCollectionSeason, true)}]]活动`;
         if (vocaloidCollectionRank) {
             wikiText += `并获得${vocaloidCollectionRank}`;
         }
